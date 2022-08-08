@@ -1,326 +1,319 @@
 //
 //  Renderer.swift
-//  MetalGoL Shared
+//  MetalGoL
 //
 //  Created by Albertino Padin on 8/6/22.
 //
 
-// Our platform independent renderer class
-
 import Metal
 import MetalKit
-import simd
 
-// The 256 byte aligned size of our uniform structure
-let alignedUniformsSize = (MemoryLayout<Uniforms>.size + 0xFF) & -0x100
 
-let maxBuffersInFlight = 3
+let MaxOutstandingFrameCount = 3
+let MaxConstantsSize = 1_024 * 1_024 * 32
+let MinBufferAlignment = 256
 
-enum RendererError: Error {
-    case badVertexDescriptor
+struct NodeConstants {
+    var modelMatrix: float4x4
+    var color: SIMD4<Float>
 }
 
-class Renderer: NSObject, MTKViewDelegate {
-    
-    public let device: MTLDevice
+struct LightConstants {
+    var viewProjectionMatrix: float4x4
+    var intensity: simd_float3
+    var position: simd_float3
+    var direction: simd_float3
+    var type: UInt32
+}
+
+struct FrameConstants {
+    var projectionMatrix: float4x4
+    var viewMatrix: float4x4
+    var inverseViewDirectionMatrix: float3x3
+    var lightCount: UInt32
+}
+
+struct InstanceConstants {
+    var modelMatrix: float4x4
+    var color: simd_float4
+}
+
+
+final class Renderer: NSObject, MTKViewDelegate {
+    let device: MTLDevice
     let commandQueue: MTLCommandQueue
-    var dynamicUniformBuffer: MTLBuffer
-    var pipelineState: MTLRenderPipelineState
-    var depthState: MTLDepthStencilState
-    var colorMap: MTLTexture
+    let view: MTKView
     
-    let inFlightSemaphore = DispatchSemaphore(value: maxBuffersInFlight)
+    let pointOfView = Node()
+    var lights = [Light]()
     
-    var uniformBufferOffset = 0
+//    let gridSize = 315  // This seems to be near the limit, 320 doesn't work for some reason...
+    let gridSize = 300
     
-    var uniformBufferIndex = 0
+    private var vertexDescriptor: MTLVertexDescriptor!
+    private var mdlVertexDescriptor: MDLVertexDescriptor!
     
-    var uniforms: UnsafeMutablePointer<Uniforms>
+    private var renderPipelineState: MTLRenderPipelineState!
     
-    var projectionMatrix: matrix_float4x4 = matrix_float4x4()
+    private var constantBuffer: MTLBuffer!
+    private var currentConstantBufferOffset = 0
+    private var frameConstantsOffset: Int = 0
+    private var lightConstantsOffset: Int = 0
+    private var nodeConstantsOffsets = [Int]()
     
-    var rotation: Float = 0
+    private var frameSemaphore = DispatchSemaphore(value: MaxOutstandingFrameCount)
+    private var frameIndex = 0
+    private var time: TimeInterval = 0
     
-    var mesh: MTKMesh
+    private let projectionFrameNear: Float = 0.01
+    private let projectionFrameFar: Float = 400
     
-    init?(metalKitView: MTKView) {
-        self.device = metalKitView.device!
-        guard let queue = self.device.makeCommandQueue() else { return nil }
-        self.commandQueue = queue
-        
-        let uniformBufferSize = alignedUniformsSize * maxBuffersInFlight
-        
-        guard let buffer = self.device.makeBuffer(length:uniformBufferSize, options:[MTLResourceOptions.storageModeShared]) else { return nil }
-        dynamicUniformBuffer = buffer
-        
-        self.dynamicUniformBuffer.label = "UniformBuffer"
-        
-        uniforms = UnsafeMutableRawPointer(dynamicUniformBuffer.contents()).bindMemory(to:Uniforms.self, capacity:1)
-        
-        metalKitView.depthStencilPixelFormat = MTLPixelFormat.depth32Float_stencil8
-        metalKitView.colorPixelFormat = MTLPixelFormat.bgra8Unorm_srgb
-        metalKitView.sampleCount = 1
-        
-        let mtlVertexDescriptor = Renderer.buildMetalVertexDescriptor()
-        
-        do {
-            pipelineState = try Renderer.buildRenderPipelineWithDevice(device: device,
-                                                                       metalKitView: metalKitView,
-                                                                       mtlVertexDescriptor: mtlVertexDescriptor)
-        } catch {
-            print("Unable to compile render pipeline state.  Error info: \(error)")
-            return nil
-        }
-        
-        let depthStateDescriptor = MTLDepthStencilDescriptor()
-        depthStateDescriptor.depthCompareFunction = MTLCompareFunction.less
-        depthStateDescriptor.isDepthWriteEnabled = true
-        guard let state = device.makeDepthStencilState(descriptor:depthStateDescriptor) else { return nil }
-        depthState = state
-        
-        do {
-            mesh = try Renderer.buildMesh(device: device, mtlVertexDescriptor: mtlVertexDescriptor)
-        } catch {
-            print("Unable to build MetalKit Mesh. Error info: \(error)")
-            return nil
-        }
-        
-        do {
-            colorMap = try Renderer.loadTexture(device: device, textureName: "ColorMap")
-        } catch {
-            print("Unable to load texture. Error info: \(error)")
-            return nil
-        }
+    private let updateQueue = DispatchQueue(label: "metaltest.update.queue",
+                                            qos: .userInteractive)
+    
+    public var grid: Grid!
+    
+    init(device: MTLDevice, view: MTKView) {
+        view.device = device
+        self.device = device
+        self.view = view
+        self.commandQueue = device.makeCommandQueue()!
         
         super.init()
         
+        view.device = device
+        view.delegate = self
+        view.colorPixelFormat = .bgra8Unorm_srgb
+        view.clearColor = MTLClearColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        
+        makeScene()
+        makeResources()
+        makePipeline()
     }
     
-    class func buildMetalVertexDescriptor() -> MTLVertexDescriptor {
-        // Create a Metal vertex descriptor specifying how vertices will by laid out for input into our render
-        //   pipeline and how we'll layout our Model IO vertices
+    func makeScene() {
+        mdlVertexDescriptor = MDLVertexDescriptor()
+        mdlVertexDescriptor.attributes[0] = MDLVertexAttribute(name: MDLVertexAttributePosition,
+                                                               format: .float3,
+                                                               offset: 0,
+                                                               bufferIndex: 0)
+        mdlVertexDescriptor.attributes[1] = MDLVertexAttribute(name: MDLVertexAttributeNormal,
+                                                               format: .float3,
+                                                               offset: 12,
+                                                               bufferIndex: 0)
+        mdlVertexDescriptor.layouts[0] = MDLVertexBufferLayout(stride: 24)
         
-        let mtlVertexDescriptor = MTLVertexDescriptor()
+        vertexDescriptor = MTKMetalVertexDescriptorFromModelIO(mdlVertexDescriptor)!
         
-        mtlVertexDescriptor.attributes[VertexAttribute.position.rawValue].format = MTLVertexFormat.float3
-        mtlVertexDescriptor.attributes[VertexAttribute.position.rawValue].offset = 0
-        mtlVertexDescriptor.attributes[VertexAttribute.position.rawValue].bufferIndex = BufferIndex.meshPositions.rawValue
+        // TODO: Set up rest of scene using nodes
+        let mdlAllocator = MTKMeshBufferAllocator(device: device)
         
-        mtlVertexDescriptor.attributes[VertexAttribute.texcoord.rawValue].format = MTLVertexFormat.float2
-        mtlVertexDescriptor.attributes[VertexAttribute.texcoord.rawValue].offset = 0
-        mtlVertexDescriptor.attributes[VertexAttribute.texcoord.rawValue].bufferIndex = BufferIndex.meshGenerics.rawValue
+        grid = Grid(gridSize, gridSize, device: device, allocator: mdlAllocator, vertexDescriptor: mdlVertexDescriptor)
+        grid.randomState(liveProbability: 0.25)
+        print("Number of nodes: \(grid.backingNodes.count)")
         
-        mtlVertexDescriptor.layouts[BufferIndex.meshPositions.rawValue].stride = 12
-        mtlVertexDescriptor.layouts[BufferIndex.meshPositions.rawValue].stepRate = 1
-        mtlVertexDescriptor.layouts[BufferIndex.meshPositions.rawValue].stepFunction = MTLVertexStepFunction.perVertex
-        
-        mtlVertexDescriptor.layouts[BufferIndex.meshGenerics.rawValue].stride = 8
-        mtlVertexDescriptor.layouts[BufferIndex.meshGenerics.rawValue].stepRate = 1
-        mtlVertexDescriptor.layouts[BufferIndex.meshGenerics.rawValue].stepFunction = MTLVertexStepFunction.perVertex
-        
-        return mtlVertexDescriptor
+        let ambientLight = Light()
+        ambientLight.type = .ambient
+        ambientLight.intensity = 1.0
+        lights.append(ambientLight)
     }
     
-    class func buildRenderPipelineWithDevice(device: MTLDevice,
-                                             metalKitView: MTKView,
-                                             mtlVertexDescriptor: MTLVertexDescriptor) throws -> MTLRenderPipelineState {
-        /// Build a render state pipeline object
-        
-        let library = device.makeDefaultLibrary()
-        
-        let vertexFunction = library?.makeFunction(name: "vertexShader")
-        let fragmentFunction = library?.makeFunction(name: "fragmentShader")
-        
-        let pipelineDescriptor = MTLRenderPipelineDescriptor()
-        pipelineDescriptor.label = "RenderPipeline"
-        pipelineDescriptor.sampleCount = metalKitView.sampleCount
-        pipelineDescriptor.vertexFunction = vertexFunction
-        pipelineDescriptor.fragmentFunction = fragmentFunction
-        pipelineDescriptor.vertexDescriptor = mtlVertexDescriptor
-        
-        pipelineDescriptor.colorAttachments[0].pixelFormat = metalKitView.colorPixelFormat
-        pipelineDescriptor.depthAttachmentPixelFormat = metalKitView.depthStencilPixelFormat
-        pipelineDescriptor.stencilAttachmentPixelFormat = metalKitView.depthStencilPixelFormat
-        
-        return try device.makeRenderPipelineState(descriptor: pipelineDescriptor)
+    func makeResources() {
+        constantBuffer = device.makeBuffer(length: MaxConstantsSize, options: .storageModeShared)
+        constantBuffer.label = "Dynamic Constants Buffer"
     }
     
-    class func buildMesh(device: MTLDevice,
-                         mtlVertexDescriptor: MTLVertexDescriptor) throws -> MTKMesh {
-        /// Create and condition mesh data to feed into a pipeline using the given vertex descriptor
-        
-        let metalAllocator = MTKMeshBufferAllocator(device: device)
-        
-        let mdlMesh = MDLMesh.newBox(withDimensions: SIMD3<Float>(4, 4, 4),
-                                     segments: SIMD3<UInt32>(2, 2, 2),
-                                     geometryType: MDLGeometryType.triangles,
-                                     inwardNormals:false,
-                                     allocator: metalAllocator)
-        
-        let mdlVertexDescriptor = MTKModelIOVertexDescriptorFromMetal(mtlVertexDescriptor)
-        
-        guard let attributes = mdlVertexDescriptor.attributes as? [MDLVertexAttribute] else {
-            throw RendererError.badVertexDescriptor
+    func makePipeline() {
+        guard let library = device.makeDefaultLibrary() else {
+            fatalError("Unable to create default Metal library")
         }
-        attributes[VertexAttribute.position.rawValue].name = MDLVertexAttributePosition
-        attributes[VertexAttribute.texcoord.rawValue].name = MDLVertexAttributeTextureCoordinate
         
-        mdlMesh.vertexDescriptor = mdlVertexDescriptor
+        let renderPipelineDescriptor = MTLRenderPipelineDescriptor()
+        renderPipelineDescriptor.vertexDescriptor = vertexDescriptor
+        renderPipelineDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat
+        renderPipelineDescriptor.vertexFunction = library.makeFunction(name: "vertex_main")
+        renderPipelineDescriptor.fragmentFunction = library.makeFunction(name: "fragment_main")
         
-        return try MTKMesh(mesh:mdlMesh, device:device)
+        do {
+            renderPipelineState = try device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
+        } catch {
+            fatalError("Error while creating render pipeline state: \(error)")
+        }
     }
     
-    class func loadTexture(device: MTLDevice,
-                           textureName: String) throws -> MTLTexture {
-        /// Load texture data with optimal parameters for sampling
-        
-        let textureLoader = MTKTextureLoader(device: device)
-        
-        let textureLoaderOptions = [
-            MTKTextureLoader.Option.textureUsage: NSNumber(value: MTLTextureUsage.shaderRead.rawValue),
-            MTKTextureLoader.Option.textureStorageMode: NSNumber(value: MTLStorageMode.`private`.rawValue)
-        ]
-        
-        return try textureLoader.newTexture(name: textureName,
-                                            scaleFactor: 1.0,
-                                            bundle: nil,
-                                            options: textureLoaderOptions)
-        
+    func allocateConstantStorage(size: Int, alignment: Int) -> Int {
+        let effectiveAlignment = lcm(alignment, MinBufferAlignment)
+        var allocationOffset = align(currentConstantBufferOffset, upTo: effectiveAlignment)
+        if (allocationOffset + size >= MaxConstantsSize) {
+            allocationOffset = 0
+        }
+        currentConstantBufferOffset = allocationOffset + size
+        return allocationOffset
     }
     
-    private func updateDynamicBufferState() {
-        /// Update the state of our uniform buffers before rendering
+    func updateFrameConstants() {
+        let aspectRatio = Float(view.drawableSize.width / view.drawableSize.height)
+        let projectionMatrix = simd_float4x4(perspectiveProjectionFoVY: .pi / 3,
+                                             aspectRatio: aspectRatio,
+                                             near: projectionFrameNear,
+                                             far: projectionFrameFar)
         
-        uniformBufferIndex = (uniformBufferIndex + 1) % maxBuffersInFlight
+        let cameraMatrix = pointOfView.worldTransform
+        let viewMatrix = cameraMatrix.inverse
+        var viewDirectionMatrix = viewMatrix
+        viewDirectionMatrix.columns.3 = SIMD4<Float>(0, 0, 0, 1)
         
-        uniformBufferOffset = alignedUniformsSize * uniformBufferIndex
+        var constants = FrameConstants(projectionMatrix: projectionMatrix,
+                                       viewMatrix: viewMatrix,
+                                       inverseViewDirectionMatrix: viewDirectionMatrix.inverse.upperLeft3x3,
+                                       lightCount: UInt32(lights.count))
         
-        uniforms = UnsafeMutableRawPointer(dynamicUniformBuffer.contents() + uniformBufferOffset).bindMemory(to:Uniforms.self, capacity:1)
+        let layout = MemoryLayout<FrameConstants>.self
+        frameConstantsOffset = allocateConstantStorage(size: layout.size, alignment: layout.stride)
+        let constantsPointer = constantBuffer.contents().advanced(by: frameConstantsOffset)
+        constantsPointer.copyMemory(from: &constants, byteCount: layout.size)
     }
     
-    private func updateGameState() {
-        /// Update any game state before rendering
+    func updateLightConstants() {
+        let layout = MemoryLayout<LightConstants>.self
+        lightConstantsOffset = allocateConstantStorage(size: layout.stride * lights.count, alignment: layout.stride)
+        let lightsBufferPointer = constantBuffer.contents()
+            .advanced(by: lightConstantsOffset)
+            .assumingMemoryBound(to: LightConstants.self)
         
-        uniforms[0].projectionMatrix = projectionMatrix
-        
-        let rotationAxis = SIMD3<Float>(1, 1, 0)
-        let modelMatrix = matrix4x4_rotation(radians: rotation, axis: rotationAxis)
-        let viewMatrix = matrix4x4_translation(0.0, 0.0, -8.0)
-        uniforms[0].modelViewMatrix = simd_mul(viewMatrix, modelMatrix)
-        rotation += 0.01
+        for (lightIndex, light) in lights.enumerated() {
+            let shadowViewMatrix = light.worldTransform.inverse
+            let shadowProjectionMatrix = light.projectionMatrix
+            let shadowViewProjectionMatrix = shadowProjectionMatrix * shadowViewMatrix
+            lightsBufferPointer[lightIndex] = LightConstants(viewProjectionMatrix: shadowViewProjectionMatrix,
+                                                             intensity: light.color * light.intensity,
+                                                             position: light.position,
+                                                             direction: light.direction,
+                                                             type: light.type.rawValue)
+        }
     }
     
-    func draw(in view: MTKView) {
-        /// Per frame updates hare
+    func updateNodeConstants(timestep: Float) {
+        // Update node color here
+        nodeConstantsOffsets.removeAll()
+
+        let layout = MemoryLayout<InstanceConstants>.self
+        let offset = allocateConstantStorage(size: layout.stride * grid.backingNodes.count, alignment: layout.stride)
+        let instanceConstants = constantBuffer.contents().advanced(by: offset).bindMemory(to: InstanceConstants.self,
+                                                                                          capacity: grid.backingNodes.count)
         
-        _ = inFlightSemaphore.wait(timeout: DispatchTime.distantFuture)
-        
-        if let commandBuffer = commandQueue.makeCommandBuffer() {
-            
-            let semaphore = inFlightSemaphore
-            commandBuffer.addCompletedHandler { (_ commandBuffer)-> Swift.Void in
-                semaphore.signal()
-            }
-            
-            self.updateDynamicBufferState()
-            
-            self.updateGameState()
-            
-            /// Delay getting the currentRenderPassDescriptor until we absolutely need it to avoid
-            ///   holding onto the drawable and blocking the display pipeline any longer than necessary
-            let renderPassDescriptor = view.currentRenderPassDescriptor
-            
-            if let renderPassDescriptor = renderPassDescriptor, let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) {
-                
-                /// Final pass rendering code here
-                renderEncoder.label = "Primary Render Encoder"
-                
-                renderEncoder.pushDebugGroup("Draw Box")
-                
-                renderEncoder.setCullMode(.back)
-                
-                renderEncoder.setFrontFacing(.counterClockwise)
-                
-                renderEncoder.setRenderPipelineState(pipelineState)
-                
-                renderEncoder.setDepthStencilState(depthState)
-                
-                renderEncoder.setVertexBuffer(dynamicUniformBuffer, offset:uniformBufferOffset, index: BufferIndex.uniforms.rawValue)
-                renderEncoder.setFragmentBuffer(dynamicUniformBuffer, offset:uniformBufferOffset, index: BufferIndex.uniforms.rawValue)
-                
-                for (index, element) in mesh.vertexDescriptor.layouts.enumerated() {
-                    guard let layout = element as? MDLVertexBufferLayout else {
-                        return
-                    }
-                    
-                    if layout.stride != 0 {
-                        let buffer = mesh.vertexBuffers[index]
-                        renderEncoder.setVertexBuffer(buffer.buffer, offset:buffer.offset, index: index)
+        let t_writeBuffer = timeit {
+            updateQueue.sync {
+                grid.backingNodes.withUnsafeBufferPointer { buffer in
+                    DispatchQueue.concurrentPerform(iterations: self.gridSize) { x in
+                        DispatchQueue.concurrentPerform(iterations: self.gridSize) { y in
+                            let i = x + (y * self.gridSize)
+                            instanceConstants[i] = InstanceConstants(modelMatrix: buffer[i].worldTransform,
+                                                                     color: buffer[i].color)
+                        }
                     }
                 }
-                
-                renderEncoder.setFragmentTexture(colorMap, index: TextureIndex.color.rawValue)
-                
-                for submesh in mesh.submeshes {
-                    renderEncoder.drawIndexedPrimitives(type: submesh.primitiveType,
-                                                        indexCount: submesh.indexCount,
-                                                        indexType: submesh.indexType,
-                                                        indexBuffer: submesh.indexBuffer.buffer,
-                                                        indexBufferOffset: submesh.indexBuffer.offset)
-                    
-                }
-                
-                renderEncoder.popDebugGroup()
-                
-                renderEncoder.endEncoding()
-                
-                if let drawable = view.currentDrawable {
-                    commandBuffer.present(drawable)
-                }
             }
-            
-            commandBuffer.commit()
         }
+    
+        nodeConstantsOffsets.append(offset)
+        
+        print("[updateNodeConstants] Writing instance constants time: \(Double(t_writeBuffer)/1_000_000) ms")
+    }
+    
+    func renderPassDescriptor(colorTexture: MTLTexture) -> MTLRenderPassDescriptor {
+        let renderPassDescriptor = MTLRenderPassDescriptor()
+        renderPassDescriptor.colorAttachments[0].texture = colorTexture
+        renderPassDescriptor.colorAttachments[0].loadAction = .clear
+        renderPassDescriptor.colorAttachments[0].clearColor = view.clearColor
+        renderPassDescriptor.colorAttachments[0].storeAction = .store
+        return renderPassDescriptor
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-        /// Respond to drawable size or orientation changes here
-        
-        let aspect = Float(size.width) / Float(size.height)
-        projectionMatrix = matrix_perspective_right_hand(fovyRadians: radians_from_degrees(65), aspectRatio:aspect, nearZ: 0.1, farZ: 100.0)
+        // TODO if implement MSAA
+    }
+    
+    func draw(in view: MTKView) {
+        let t_totalDraw = timeit {
+            // This blocks if 3 frames are already underway:
+            frameSemaphore.wait()
+            
+            let initialConstantOffset = currentConstantBufferOffset
+            let timestep = 1.0 / Double(view.preferredFramesPerSecond)
+            time += timestep
+            
+            let t_constants = timeit {
+                updateLightConstants()
+                updateFrameConstants()
+                let t_nodeConstants = timeit {
+                    updateNodeConstants(timestep: Float(timestep))
+                }
+                print("Run time for updating Node constants: \(Double(t_nodeConstants)/1_000_000) ms")
+            }
+            print("Run time for updating constants: \(Double(t_constants)/1_000_000) ms")
+            
+            guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+            
+            guard let drawable = view.currentDrawable else { return }
+            let renderPassDescriptor = renderPassDescriptor(colorTexture: drawable.texture)
+            
+            let t_main = timeit {
+                // Main pass:
+                // TODO: Can I pull this (makeRenderCommandEncoder) out of the draw loop?
+                let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+                renderCommandEncoder.setFrontFacing(.counterClockwise)
+                renderCommandEncoder.setCullMode(.back)
+                renderCommandEncoder.setRenderPipelineState(renderPipelineState)
+                
+                // Bind constants:
+                renderCommandEncoder.setVertexBuffer(constantBuffer, offset: frameConstantsOffset, index: 3)
+                renderCommandEncoder.setFragmentBuffer(constantBuffer, offset: frameConstantsOffset, index: 3)
+                renderCommandEncoder.setFragmentBuffer(constantBuffer, offset: lightConstantsOffset, index: 4)
+                
+                
+                let t_main_loop = timeit {
+                    let node = grid.backingNodes.first!
+                    let mesh = node.mesh!
+                    
+                    renderCommandEncoder.setVertexBuffer(constantBuffer, offset: nodeConstantsOffsets[0], index: 2)
+                    
+                    for (i, meshBuffer) in mesh.vertexBuffers.enumerated() {
+                        renderCommandEncoder.setVertexBuffer(meshBuffer.buffer, offset: meshBuffer.offset, index: i)
+                    }
+
+                    for submesh in mesh.submeshes {
+                        let indexBuffer = submesh.indexBuffer
+                        renderCommandEncoder.drawIndexedPrimitives(type: submesh.primitiveType,
+                                                                   indexCount: submesh.indexCount,
+                                                                   indexType: submesh.indexType,
+                                                                   indexBuffer: indexBuffer.buffer,
+                                                                   indexBufferOffset: indexBuffer.offset,
+                                                                   instanceCount: grid.backingNodes.count)
+                    }
+                }
+                
+                print("Run time for main draw pass loop: \(Double(t_main_loop)/1_000_000) ms")
+                
+                renderCommandEncoder.endEncoding()
+                // END main pass
+            }
+            print("Run time for main draw pass: \(Double(t_main)/1_000_000) ms")
+            
+            commandBuffer.present(drawable)
+            commandBuffer.addCompletedHandler { [weak self] _ in
+                self?.frameSemaphore.signal()
+            }
+            commandBuffer.commit()
+            
+            let constantSize = currentConstantBufferOffset - initialConstantOffset
+            if (constantSize > MaxConstantsSize / MaxOutstandingFrameCount) {
+                print("Insufficient constant storage: frame consumed \(constantSize) bytes of total \(MaxConstantsSize) bytes")
+            }
+            
+            frameIndex += 1
+        }
+        print("Total Draw call Run Time: \(Double(t_totalDraw)/1_000_000) ms")
     }
 }
 
-// Generic matrix math utility functions
-func matrix4x4_rotation(radians: Float, axis: SIMD3<Float>) -> matrix_float4x4 {
-    let unitAxis = normalize(axis)
-    let ct = cosf(radians)
-    let st = sinf(radians)
-    let ci = 1 - ct
-    let x = unitAxis.x, y = unitAxis.y, z = unitAxis.z
-    return matrix_float4x4.init(columns:(vector_float4(    ct + x * x * ci, y * x * ci + z * st, z * x * ci - y * st, 0),
-                                         vector_float4(x * y * ci - z * st,     ct + y * y * ci, z * y * ci + x * st, 0),
-                                         vector_float4(x * z * ci + y * st, y * z * ci - x * st,     ct + z * z * ci, 0),
-                                         vector_float4(                  0,                   0,                   0, 1)))
-}
-
-func matrix4x4_translation(_ translationX: Float, _ translationY: Float, _ translationZ: Float) -> matrix_float4x4 {
-    return matrix_float4x4.init(columns:(vector_float4(1, 0, 0, 0),
-                                         vector_float4(0, 1, 0, 0),
-                                         vector_float4(0, 0, 1, 0),
-                                         vector_float4(translationX, translationY, translationZ, 1)))
-}
-
-func matrix_perspective_right_hand(fovyRadians fovy: Float, aspectRatio: Float, nearZ: Float, farZ: Float) -> matrix_float4x4 {
-    let ys = 1 / tanf(fovy * 0.5)
-    let xs = ys / aspectRatio
-    let zs = farZ / (nearZ - farZ)
-    return matrix_float4x4.init(columns:(vector_float4(xs,  0, 0,   0),
-                                         vector_float4( 0, ys, 0,   0),
-                                         vector_float4( 0,  0, zs, -1),
-                                         vector_float4( 0,  0, zs * nearZ, 0)))
-}
-
-func radians_from_degrees(_ degrees: Float) -> Float {
-    return (degrees / 180) * .pi
-}

@@ -18,23 +18,53 @@
 		CE204643289F47E30007BD14 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204642289F47E30007BD14 /* AppDelegate.swift */; };
 		CE204645289F47E30007BD14 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204644289F47E30007BD14 /* GameViewController.swift */; };
 		CE204648289F47E30007BD14 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE204646289F47E30007BD14 /* Main.storyboard */; };
-		CE20464A289F47E30007BD14 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204617289F47E10007BD14 /* Shaders.metal */; };
-		CE20464B289F47E30007BD14 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204617289F47E10007BD14 /* Shaders.metal */; };
-		CE20464C289F47E30007BD14 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204617289F47E10007BD14 /* Shaders.metal */; };
-		CE20464D289F47E30007BD14 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204618289F47E10007BD14 /* Renderer.swift */; };
-		CE20464E289F47E30007BD14 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204618289F47E10007BD14 /* Renderer.swift */; };
-		CE20464F289F47E30007BD14 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204618289F47E10007BD14 /* Renderer.swift */; };
+		CE20464A289F47E30007BD14 /* Shaders_og.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204617289F47E10007BD14 /* Shaders_og.metal */; };
+		CE20464B289F47E30007BD14 /* Shaders_og.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204617289F47E10007BD14 /* Shaders_og.metal */; };
+		CE20464C289F47E30007BD14 /* Shaders_og.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204617289F47E10007BD14 /* Shaders_og.metal */; };
+		CE20464D289F47E30007BD14 /* Renderer_og.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204618289F47E10007BD14 /* Renderer_og.swift */; };
+		CE20464E289F47E30007BD14 /* Renderer_og.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204618289F47E10007BD14 /* Renderer_og.swift */; };
+		CE20464F289F47E30007BD14 /* Renderer_og.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204618289F47E10007BD14 /* Renderer_og.swift */; };
 		CE204650289F47E30007BD14 /* ShaderTypes.h in Resources */ = {isa = PBXBuildFile; fileRef = CE204619289F47E10007BD14 /* ShaderTypes.h */; };
 		CE204651289F47E30007BD14 /* ShaderTypes.h in Resources */ = {isa = PBXBuildFile; fileRef = CE204619289F47E10007BD14 /* ShaderTypes.h */; };
 		CE204652289F47E30007BD14 /* ShaderTypes.h in Resources */ = {isa = PBXBuildFile; fileRef = CE204619289F47E10007BD14 /* ShaderTypes.h */; };
 		CE204653289F47E30007BD14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE20461A289F47E30007BD14 /* Assets.xcassets */; };
 		CE204654289F47E30007BD14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE20461A289F47E30007BD14 /* Assets.xcassets */; };
 		CE204655289F47E30007BD14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE20461A289F47E30007BD14 /* Assets.xcassets */; };
+		CE204662289F91600007BD14 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204661289F91600007BD14 /* Renderer.swift */; };
+		CE204663289F91600007BD14 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204661289F91600007BD14 /* Renderer.swift */; };
+		CE204664289F91600007BD14 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204661289F91600007BD14 /* Renderer.swift */; };
+		CE204666289F91710007BD14 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204665289F91710007BD14 /* Shaders.metal */; };
+		CE204667289F91710007BD14 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204665289F91710007BD14 /* Shaders.metal */; };
+		CE204668289F91710007BD14 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = CE204665289F91710007BD14 /* Shaders.metal */; };
+		CE20466A289F91FD0007BD14 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204669289F91FD0007BD14 /* Node.swift */; };
+		CE20466B289F91FD0007BD14 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204669289F91FD0007BD14 /* Node.swift */; };
+		CE20466C289F91FD0007BD14 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204669289F91FD0007BD14 /* Node.swift */; };
+		CE20466E289F92910007BD14 /* TimeIt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20466D289F92910007BD14 /* TimeIt.swift */; };
+		CE20466F289F92910007BD14 /* TimeIt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20466D289F92910007BD14 /* TimeIt.swift */; };
+		CE204670289F92910007BD14 /* TimeIt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20466D289F92910007BD14 /* TimeIt.swift */; };
+		CE204672289F92B80007BD14 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204671289F92B80007BD14 /* Light.swift */; };
+		CE204673289F92B80007BD14 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204671289F92B80007BD14 /* Light.swift */; };
+		CE204674289F92B80007BD14 /* Light.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204671289F92B80007BD14 /* Light.swift */; };
+		CE204676289F92DF0007BD14 /* FlyCameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204675289F92DF0007BD14 /* FlyCameraController.swift */; };
+		CE204677289F92DF0007BD14 /* FlyCameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204675289F92DF0007BD14 /* FlyCameraController.swift */; };
+		CE204678289F92DF0007BD14 /* FlyCameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204675289F92DF0007BD14 /* FlyCameraController.swift */; };
+		CE20467A289F93250007BD14 /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204679289F93250007BD14 /* MathUtils.swift */; };
+		CE20467B289F93250007BD14 /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204679289F93250007BD14 /* MathUtils.swift */; };
+		CE20467C289F93250007BD14 /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE204679289F93250007BD14 /* MathUtils.swift */; };
+		CE20467E289FD03D0007BD14 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20467D289FD03D0007BD14 /* Cell.swift */; };
+		CE20467F289FD03D0007BD14 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20467D289FD03D0007BD14 /* Cell.swift */; };
+		CE204680289FD03D0007BD14 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20467D289FD03D0007BD14 /* Cell.swift */; };
+		CE20468228A081A80007BD14 /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468128A081A80007BD14 /* Grid.swift */; };
+		CE20468328A081A80007BD14 /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468128A081A80007BD14 /* Grid.swift */; };
+		CE20468428A081A80007BD14 /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468128A081A80007BD14 /* Grid.swift */; };
+		CE20468628A0845B0007BD14 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468528A0845B0007BD14 /* Colors.swift */; };
+		CE20468728A0845B0007BD14 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468528A0845B0007BD14 /* Colors.swift */; };
+		CE20468828A0845B0007BD14 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468528A0845B0007BD14 /* Colors.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CE204617289F47E10007BD14 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
-		CE204618289F47E10007BD14 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		CE204617289F47E10007BD14 /* Shaders_og.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders_og.metal; sourceTree = "<group>"; };
+		CE204618289F47E10007BD14 /* Renderer_og.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer_og.swift; sourceTree = "<group>"; };
 		CE204619289F47E10007BD14 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		CE20461A289F47E30007BD14 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE20461F289F47E30007BD14 /* MetalGoL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetalGoL.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -52,6 +82,16 @@
 		CE204644289F47E30007BD14 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		CE204647289F47E30007BD14 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CE204649289F47E30007BD14 /* MetalGoL_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MetalGoL_macOS.entitlements; sourceTree = "<group>"; };
+		CE204661289F91600007BD14 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		CE204665289F91710007BD14 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		CE204669289F91FD0007BD14 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
+		CE20466D289F92910007BD14 /* TimeIt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeIt.swift; sourceTree = "<group>"; };
+		CE204671289F92B80007BD14 /* Light.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Light.swift; sourceTree = "<group>"; };
+		CE204675289F92DF0007BD14 /* FlyCameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlyCameraController.swift; sourceTree = "<group>"; };
+		CE204679289F93250007BD14 /* MathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathUtils.swift; sourceTree = "<group>"; };
+		CE20467D289FD03D0007BD14 /* Cell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cell.swift; sourceTree = "<group>"; };
+		CE20468128A081A80007BD14 /* Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
+		CE20468528A0845B0007BD14 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,10 +133,20 @@
 		CE204616289F47E10007BD14 /* MetalGoL Shared */ = {
 			isa = PBXGroup;
 			children = (
-				CE204617289F47E10007BD14 /* Shaders.metal */,
-				CE204618289F47E10007BD14 /* Renderer.swift */,
+				CE204617289F47E10007BD14 /* Shaders_og.metal */,
+				CE204618289F47E10007BD14 /* Renderer_og.swift */,
 				CE204619289F47E10007BD14 /* ShaderTypes.h */,
 				CE20461A289F47E30007BD14 /* Assets.xcassets */,
+				CE204661289F91600007BD14 /* Renderer.swift */,
+				CE204665289F91710007BD14 /* Shaders.metal */,
+				CE204669289F91FD0007BD14 /* Node.swift */,
+				CE20466D289F92910007BD14 /* TimeIt.swift */,
+				CE204671289F92B80007BD14 /* Light.swift */,
+				CE204675289F92DF0007BD14 /* FlyCameraController.swift */,
+				CE204679289F93250007BD14 /* MathUtils.swift */,
+				CE20467D289FD03D0007BD14 /* Cell.swift */,
+				CE20468128A081A80007BD14 /* Grid.swift */,
+				CE20468528A0845B0007BD14 /* Colors.swift */,
 			);
 			path = "MetalGoL Shared";
 			sourceTree = "<group>";
@@ -279,10 +329,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE20464D289F47E30007BD14 /* Renderer.swift in Sources */,
-				CE20464A289F47E30007BD14 /* Shaders.metal in Sources */,
+				CE204672289F92B80007BD14 /* Light.swift in Sources */,
+				CE204666289F91710007BD14 /* Shaders.metal in Sources */,
+				CE204676289F92DF0007BD14 /* FlyCameraController.swift in Sources */,
+				CE20468628A0845B0007BD14 /* Colors.swift in Sources */,
+				CE20464D289F47E30007BD14 /* Renderer_og.swift in Sources */,
+				CE20464A289F47E30007BD14 /* Shaders_og.metal in Sources */,
+				CE20467E289FD03D0007BD14 /* Cell.swift in Sources */,
+				CE20466E289F92910007BD14 /* TimeIt.swift in Sources */,
+				CE20468228A081A80007BD14 /* Grid.swift in Sources */,
 				CE204625289F47E30007BD14 /* GameViewController.swift in Sources */,
+				CE204662289F91600007BD14 /* Renderer.swift in Sources */,
 				CE204623289F47E30007BD14 /* AppDelegate.swift in Sources */,
+				CE20467A289F93250007BD14 /* MathUtils.swift in Sources */,
+				CE20466A289F91FD0007BD14 /* Node.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,10 +350,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE20464E289F47E30007BD14 /* Renderer.swift in Sources */,
-				CE20464B289F47E30007BD14 /* Shaders.metal in Sources */,
+				CE204673289F92B80007BD14 /* Light.swift in Sources */,
+				CE204667289F91710007BD14 /* Shaders.metal in Sources */,
+				CE204677289F92DF0007BD14 /* FlyCameraController.swift in Sources */,
+				CE20468728A0845B0007BD14 /* Colors.swift in Sources */,
+				CE20464E289F47E30007BD14 /* Renderer_og.swift in Sources */,
+				CE20464B289F47E30007BD14 /* Shaders_og.metal in Sources */,
+				CE20467F289FD03D0007BD14 /* Cell.swift in Sources */,
+				CE20466F289F92910007BD14 /* TimeIt.swift in Sources */,
+				CE20468328A081A80007BD14 /* Grid.swift in Sources */,
 				CE204635289F47E30007BD14 /* GameViewController.swift in Sources */,
+				CE204663289F91600007BD14 /* Renderer.swift in Sources */,
 				CE204633289F47E30007BD14 /* AppDelegate.swift in Sources */,
+				CE20467B289F93250007BD14 /* MathUtils.swift in Sources */,
+				CE20466B289F91FD0007BD14 /* Node.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -301,10 +371,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE20464F289F47E30007BD14 /* Renderer.swift in Sources */,
-				CE20464C289F47E30007BD14 /* Shaders.metal in Sources */,
+				CE204674289F92B80007BD14 /* Light.swift in Sources */,
+				CE204668289F91710007BD14 /* Shaders.metal in Sources */,
+				CE204678289F92DF0007BD14 /* FlyCameraController.swift in Sources */,
+				CE20468828A0845B0007BD14 /* Colors.swift in Sources */,
+				CE20464F289F47E30007BD14 /* Renderer_og.swift in Sources */,
+				CE20464C289F47E30007BD14 /* Shaders_og.metal in Sources */,
+				CE204680289FD03D0007BD14 /* Cell.swift in Sources */,
+				CE204670289F92910007BD14 /* TimeIt.swift in Sources */,
+				CE20468428A081A80007BD14 /* Grid.swift in Sources */,
 				CE204645289F47E30007BD14 /* GameViewController.swift in Sources */,
+				CE204664289F91600007BD14 /* Renderer.swift in Sources */,
 				CE204643289F47E30007BD14 /* AppDelegate.swift in Sources */,
+				CE20467C289F93250007BD14 /* MathUtils.swift in Sources */,
+				CE20466C289F91FD0007BD14 /* Node.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,7 +473,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -408,7 +488,8 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZE_OBJECT_LIFETIME = YES;
 			};
 			name = Debug;
 		};
@@ -450,6 +531,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -460,6 +542,7 @@
 				MTL_FAST_MATH = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZE_OBJECT_LIFETIME = YES;
 			};
 			name = Release;
 		};

@@ -11,9 +11,8 @@ import MetalKit
 final class Grid {
     let xCount: Int
     let yCount: Int
-    // TODO: Figure out how to do this in flat array for possibly more performance
-    final var grid = ContiguousArray<ContiguousArray<Cell>>()   // 2D Array to hold the cells
-    final var backingNodes = ContiguousArray<Node>()
+    let totalCount: Int
+    final var cells = ContiguousArray<Cell>()
     var generation: UInt64 = 0
     
     final let updateQueue = DispatchQueue(label: "cgol.update.queue",
@@ -28,12 +27,12 @@ final class Grid {
          vertexDescriptor: MDLVertexDescriptor) {
         xCount = xCells
         yCount = yCells
+        totalCount = xCells * yCells
         
         // Figure out left and top starting points
         let startX = -Float(xCells/2)
         let startY = -Float(yCells/2)
         for xc in 0..<xCells {
-            var column = ContiguousArray<Cell>()
             for yc in 0..<yCells {
                 let cell = Cell(device: device,
                                 allocator: allocator,
@@ -41,11 +40,8 @@ final class Grid {
                                 color: GREEN_COLOR,
                                 position: SIMD3<Float>(startX + Float(xc), startY + Float(yc), 0))
                 
-                column.append(cell)
-                backingNodes.append(cell.node)
+                cells.append(cell)
             }
-            
-            grid.append(column)
         }
         
         setNeighborsForAllCellsInGrid()
@@ -54,7 +50,7 @@ final class Grid {
     private func setNeighborsForAllCellsInGrid() {
         for x in 0..<xCount {
             for y in 0..<yCount {
-                grid[x][y].neighbors = getCellNeighbors(x: x, y: y)
+                cells[x + y*xCount].neighbors = getCellNeighbors(x: x, y: y)
             }
         }
     }
@@ -68,14 +64,14 @@ final class Grid {
         let topY    = y + 1
         let bottomY = y - 1
         
-        let leftNeighbor        = leftX > -1 ? grid[leftX][y] : nil
-        let upperLeftNeighbor   = leftX > -1 && topY < yCount ? grid[leftX][topY] : nil
-        let upperNeighbor       = topY < yCount ? grid[x][topY] : nil
-        let upperRightNeighbor  = rightX < xCount && topY < yCount ? grid[rightX][topY] : nil
-        let rightNeighbor       = rightX < xCount ? grid[rightX][y] : nil
-        let lowerRightNeighbor  = rightX < xCount && bottomY > -1 ? grid[rightX][bottomY] : nil
-        let lowerNeighbor       = bottomY > -1 ? grid[x][bottomY] : nil
-        let lowerLeftNeighbor   = leftX > -1 && bottomY > -1 ? grid[leftX][bottomY] : nil
+        let leftNeighbor        = leftX > -1 ? cells[leftX + y*xCount] : nil
+        let upperLeftNeighbor   = leftX > -1 && topY < yCount ? cells[leftX + topY*xCount] : nil
+        let upperNeighbor       = topY < yCount ? cells[x + topY*xCount] : nil
+        let upperRightNeighbor  = rightX < xCount && topY < yCount ? cells[rightX + topY*xCount] : nil
+        let rightNeighbor       = rightX < xCount ? cells[rightX + y*xCount] : nil
+        let lowerRightNeighbor  = rightX < xCount && bottomY > -1 ? cells[rightX + bottomY*xCount] : nil
+        let lowerNeighbor       = bottomY > -1 ? cells[x + bottomY*xCount] : nil
+        let lowerLeftNeighbor   = leftX > -1 && bottomY > -1 ? cells[leftX + bottomY*xCount] : nil
         
         if let left_n = leftNeighbor {
             neighbors.append(left_n)
@@ -120,19 +116,19 @@ final class Grid {
     // Must apply changes all at once for each generation, so will need copy of current cell grid
     @inlinable
     final func update() -> UInt64 {
-        // 2.8 - 3 ms:
-        // This also seems to have a similar FPS and Frametime as double concurrentPerform:
-        // Prepare update:
         updateQueue.sync {
             DispatchQueue.concurrentPerform(iterations: self.xCount) { x in
-                self.grid[x].forEach { $0.prepareUpdate() }
+                DispatchQueue.concurrentPerform(iterations: self.yCount) { y in
+                    self.cells[x + y*xCount].prepareUpdate()
+                }
             }
         }
 
-        // Update
         updateQueue.sync {
             DispatchQueue.concurrentPerform(iterations: self.xCount) { x in
-                self.grid[x].lazy.filter({ $0.needsUpdate() }).forEach { $0.update() }
+                DispatchQueue.concurrentPerform(iterations: self.yCount) { y in
+                    self.cells[x + y*xCount].update()
+                }
             }
         }
         
@@ -146,7 +142,7 @@ final class Grid {
         updateQueue.sync(flags: .barrier) {
             DispatchQueue.concurrentPerform(iterations: self.xCount) { x in
                 DispatchQueue.concurrentPerform(iterations: self.yCount) { y in
-                    self.grid[x][y].makeDead()
+                    self.cells[x + y*xCount].makeDead()
                 }
             }
         }
@@ -167,7 +163,7 @@ final class Grid {
                         DispatchQueue.concurrentPerform(iterations: self.yCount) { y in
                             let randInt = Int.random(in: 0...100)
                             if randInt <= liveProb {
-                                self.grid[x][y].makeLive()
+                                self.cells[x + y*xCount].makeLive()
                             }
                         }
                     }
@@ -180,7 +176,7 @@ final class Grid {
         updateQueue.sync {
             DispatchQueue.concurrentPerform(iterations: self.xCount) { x in
                 DispatchQueue.concurrentPerform(iterations: self.yCount) { y in
-                    self.grid[x][y].makeLive()
+                    self.cells[x + y*xCount].makeLive()
                 }
             }
         }

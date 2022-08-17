@@ -10,7 +10,7 @@ import MetalKit
 
 
 let MaxOutstandingFrameCount = 3
-let MaxConstantsSize = 1_024 * 1_024 * 32
+let MaxConstantsSize = 1_024 * 1_024 * 256
 let MinBufferAlignment = 256
 
 struct NodeConstants {
@@ -47,8 +47,8 @@ final class Renderer: NSObject, MTKViewDelegate {
     let pointOfView = Node()
     var lights = [Light]()
     
-//    let gridSize = 315  // This seems to be near the limit, 320 doesn't work for some reason...
-    let gridSize = 300
+    let gridSize = 315  // This seems to be near the limit, 320 doesn't work for some reason...
+//    let gridSize = 400
     
     private var vertexDescriptor: MTLVertexDescriptor!
     private var mdlVertexDescriptor: MDLVertexDescriptor!
@@ -87,7 +87,7 @@ final class Renderer: NSObject, MTKViewDelegate {
         view.clearColor = MTLClearColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
         
         makeScene()
-        makeResources()
+        makeResources(numCells: grid.cells.count)
         makePipeline()
     }
     
@@ -110,7 +110,7 @@ final class Renderer: NSObject, MTKViewDelegate {
         
         grid = Grid(gridSize, gridSize, device: device, allocator: mdlAllocator, vertexDescriptor: mdlVertexDescriptor)
         grid.randomState(liveProbability: 0.25)
-        print("Number of nodes: \(grid.backingNodes.count)")
+        print("Number of nodes: \(grid.cells.count)")
         
         let ambientLight = Light()
         ambientLight.type = .ambient
@@ -118,8 +118,15 @@ final class Renderer: NSObject, MTKViewDelegate {
         lights.append(ambientLight)
     }
     
-    func makeResources() {
-        constantBuffer = device.makeBuffer(length: MaxConstantsSize, options: .storageModeShared)
+    func makeResources(numCells: Int) {
+//        let instanceConstantsSize = numCells * MemoryLayout<InstanceConstants>.stride
+//        let frameConstantsSize = MemoryLayout<FrameConstants>.stride
+//        let lightConstantsSize = lights.count * MemoryLayout<LightConstants>.stride
+//        let constantBufferLength = instanceConstantsSize + frameConstantsSize + lightConstantsSize
+        let constantBufferLength = MaxConstantsSize
+        print("constantBufferLength: \(constantBufferLength)")
+        print("constantBufferLength (in MB): \(constantBufferLength / (1024 * 1024))")
+        constantBuffer = device.makeBuffer(length: constantBufferLength, options: .storageModeShared)
         constantBuffer.label = "Dynamic Constants Buffer"
     }
     
@@ -198,18 +205,18 @@ final class Renderer: NSObject, MTKViewDelegate {
         nodeConstantsOffsets.removeAll()
 
         let layout = MemoryLayout<InstanceConstants>.self
-        let offset = allocateConstantStorage(size: layout.stride * grid.backingNodes.count, alignment: layout.stride)
+        let offset = allocateConstantStorage(size: layout.stride * grid.cells.count, alignment: layout.stride)
         let instanceConstants = constantBuffer.contents().advanced(by: offset).bindMemory(to: InstanceConstants.self,
-                                                                                          capacity: grid.backingNodes.count)
+                                                                                          capacity: grid.cells.count)
         
         let t_writeBuffer = timeit {
             updateQueue.sync {
-                grid.backingNodes.withUnsafeBufferPointer { buffer in
+                grid.cells.withUnsafeBufferPointer { buffer in
                     DispatchQueue.concurrentPerform(iterations: self.gridSize) { x in
                         DispatchQueue.concurrentPerform(iterations: self.gridSize) { y in
                             let i = x + (y * self.gridSize)
-                            instanceConstants[i] = InstanceConstants(modelMatrix: buffer[i].worldTransform,
-                                                                     color: buffer[i].color)
+                            instanceConstants[i] = InstanceConstants(modelMatrix: buffer[i].node.worldTransform,
+                                                                     color: buffer[i].node.color)
                         }
                     }
                 }
@@ -273,7 +280,7 @@ final class Renderer: NSObject, MTKViewDelegate {
                 
                 
                 let t_main_loop = timeit {
-                    let node = grid.backingNodes.first!
+                    let node = grid.cells.first!.node
                     let mesh = node.mesh!
                     
                     renderCommandEncoder.setVertexBuffer(constantBuffer, offset: nodeConstantsOffsets[0], index: 2)
@@ -289,7 +296,7 @@ final class Renderer: NSObject, MTKViewDelegate {
                                                                    indexType: submesh.indexType,
                                                                    indexBuffer: indexBuffer.buffer,
                                                                    indexBufferOffset: indexBuffer.offset,
-                                                                   instanceCount: grid.backingNodes.count)
+                                                                   instanceCount: grid.cells.count)
                     }
                 }
                 

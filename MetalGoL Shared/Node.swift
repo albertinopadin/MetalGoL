@@ -9,14 +9,15 @@ import MetalKit
 
 
 public final class Node {
-    var mesh: MTKMesh?
     public var color = SIMD4<Float>(1, 1, 1, 1)
     public var transform: simd_float4x4 = matrix_identity_float4x4
     
     init() { }
     
-    init(mesh: MTKMesh) {
-        self.mesh = mesh
+    init(position: SIMD3<Float>, color: SIMD4<Float>, alpha: Float) {
+        self.transform = float4x4(translate: SIMD3<Float>(position.x, position.y, position.z))
+        self.color = color
+        self.alpha = alpha
     }
     
     @inlinable

@@ -47,8 +47,7 @@ final class Renderer: NSObject, MTKViewDelegate {
     let pointOfView = Node()
     var lights = [Light]()
     
-    let gridSize = 315  // This seems to be near the limit, 320 doesn't work for some reason...
-//    let gridSize = 400
+    let gridSize = 500
     
     private var vertexDescriptor: MTLVertexDescriptor!
     private var mdlVertexDescriptor: MDLVertexDescriptor!
@@ -66,7 +65,7 @@ final class Renderer: NSObject, MTKViewDelegate {
     private var time: TimeInterval = 0
     
     private let projectionFrameNear: Float = 0.01
-    private let projectionFrameFar: Float = 400
+    private let projectionFrameFar: Float = 500
     
     private let updateQueue = DispatchQueue(label: "metaltest.update.queue",
                                             qos: .userInteractive)
@@ -127,6 +126,7 @@ final class Renderer: NSObject, MTKViewDelegate {
         print("constantBufferLength: \(constantBufferLength)")
         print("constantBufferLength (in MB): \(constantBufferLength / (1024 * 1024))")
         constantBuffer = device.makeBuffer(length: constantBufferLength, options: .storageModeShared)
+//        constantBuffer = device.makeBuffer(length: constantBufferLength, options: .storageModeManaged)
         constantBuffer.label = "Dynamic Constants Buffer"
     }
     
@@ -280,8 +280,7 @@ final class Renderer: NSObject, MTKViewDelegate {
                 
                 
                 let t_main_loop = timeit {
-                    let node = grid.cells.first!.node
-                    let mesh = node.mesh!
+                    let mesh = grid.cellMesh
                     
                     renderCommandEncoder.setVertexBuffer(constantBuffer, offset: nodeConstantsOffsets[0], index: 2)
                     

@@ -59,7 +59,7 @@ class GameViewController: NSViewController {
         renderer.mtkView(mtkView, drawableSizeWillChange: mtkView.drawableSize)
         
         cameraController = FlyCameraController(pointOfView: renderer.pointOfView)
-        cameraController.eye = SIMD3<Float>(0, 0, 270)
+        cameraController.eye = SIMD3<Float>(0, 0, 400)
         
         let frameDuration = 1.0 / Double(mtkView.preferredFramesPerSecond)
         print("Frame duration: \(frameDuration)")

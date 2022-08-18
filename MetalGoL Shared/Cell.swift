@@ -23,6 +23,9 @@ public enum CellShape {
 
 
 public final class Cell {
+    public static let squareNodeSize: Float = 0.92
+    public static let circleNodeSize: Float = 0.4
+    
     public final var currentState: CellState
     public final var nextState: CellState
     public final var alive: Bool
@@ -31,8 +34,6 @@ public final class Cell {
     public final var liveNeighbors: Int = 0
     
     public final let node: Node
-    public final let squareNodeSize: Float = 0.92
-    public final let circleNodeSize: Float = 0.4
     
     public var position: SIMD3<Float> {
         get {
@@ -44,62 +45,14 @@ public final class Cell {
         }
     }
     
-    public init(device: MTLDevice,
-                allocator: MDLMeshBufferAllocator,
-                vertexDescriptor: MDLVertexDescriptor,
-                color: SIMD4<Float>,
+    public init(color: SIMD4<Float>,
                 position: SIMD3<Float>,
-                alive: Bool = false,
-                shape: CellShape = .Square) {
+                alive: Bool = false) {
         self.currentState = alive ? .Live: .Dead
         self.nextState = self.currentState
         self.neighbors = ContiguousArray<Cell>()
         self.alive = alive
-        
-        switch shape {
-        case .Square:
-            node = Cell.makeSquareNode(device: device,
-                                       allocator: allocator,
-                                       vertexDescriptor: vertexDescriptor,
-                                       size: squareNodeSize)
-        case .Circle:
-            node = Cell.makeCircleNode(device: device,
-                                       allocator: allocator,
-                                       vertexDescriptor: vertexDescriptor,
-                                       size: circleNodeSize)
-        }
-        
-        node.color = color
-        node.alpha = CellAlpha.live
-        self.position = position
-    }
-    
-    static func makeSquareNode(device: MTLDevice,
-                               allocator: MDLMeshBufferAllocator,
-                               vertexDescriptor: MDLVertexDescriptor,
-                               size: Float) -> Node {
-        let mdlBoxMesh = MDLMesh(boxWithExtent: SIMD3<Float>(size, size, 0.01),
-                                 segments: SIMD3<UInt32>(1, 1, 1),
-                                 inwardNormals: false,
-                                 geometryType: .triangles,
-                                 allocator: allocator)
-        mdlBoxMesh.vertexDescriptor = vertexDescriptor
-        let boxMesh = try! MTKMesh(mesh: mdlBoxMesh, device: device)
-        return Node(mesh: boxMesh)
-    }
-    
-    static func makeCircleNode(device: MTLDevice,
-                               allocator: MDLMeshBufferAllocator,
-                               vertexDescriptor: MDLVertexDescriptor,
-                               size: Float) -> Node {
-        let mdlSphere = MDLMesh(sphereWithExtent: SIMD3<Float>(size, size, size),
-                                segments: SIMD2<UInt32>(8, 8),
-                                inwardNormals: false,
-                                geometryType: .triangles,
-                                allocator: allocator)
-        mdlSphere.vertexDescriptor = vertexDescriptor
-        let sphereMesh = try! MTKMesh(mesh: mdlSphere, device: device)
-        return Node(mesh: sphereMesh)
+        self.node = Node(position: position, color: color, alpha: CellAlpha.live)
     }
     
     @inlinable

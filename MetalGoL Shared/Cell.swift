@@ -33,15 +33,27 @@ public final class Cell {
     public final var neighbors: ContiguousArray<Cell>
     public final var liveNeighbors: Int = 0
     
-    public final let node: Node
+    public var color = SIMD4<Float>(1, 1, 1, 1)
+    public var transform: simd_float4x4 = matrix_identity_float4x4
     
     public var position: SIMD3<Float> {
         get {
-            return node.position
+            return transform.columns.3.xyz
         }
         
         set {
-            node.transform = float4x4(translate: SIMD3<Float>(newValue.x, newValue.y, newValue.z))
+            transform = float4x4(translate: SIMD3<Float>(newValue.x, newValue.y, newValue.z))
+        }
+    }
+    
+    @inlinable
+    var alpha: Float {
+        get {
+            return color.w
+        }
+        
+        set {
+            color.w = newValue
         }
     }
     
@@ -52,19 +64,20 @@ public final class Cell {
         self.nextState = self.currentState
         self.neighbors = ContiguousArray<Cell>()
         self.alive = alive
-        self.node = Node(position: position, color: color, alpha: CellAlpha.live)
+        self.color = color
+        self.position = position
     }
     
     @inlinable
     public final func makeLive() {
         setState(state: .Live)
-        node.alpha = CellAlpha.live
+        alpha = CellAlpha.live
     }
     
     @inlinable
     public final func makeDead() {
         setState(state: .Dead)
-        node.alpha = CellAlpha.dead
+        alpha = CellAlpha.dead
     }
     
     @inlinable

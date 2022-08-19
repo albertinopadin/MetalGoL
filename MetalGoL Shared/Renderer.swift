@@ -47,7 +47,7 @@ final class Renderer: NSObject, MTKViewDelegate {
     let pointOfView = Node()
     var lights = [Light]()
     
-    let gridSize = 500
+    let gridSize = 700
     
     private var vertexDescriptor: MTLVertexDescriptor!
     private var mdlVertexDescriptor: MDLVertexDescriptor!
@@ -71,6 +71,8 @@ final class Renderer: NSObject, MTKViewDelegate {
                                             qos: .userInteractive)
     
     public var grid: Grid!
+    
+    private var constantsBufferSize: Int = 0
     
     init(device: MTLDevice, view: MTKView) {
         view.device = device
@@ -118,14 +120,13 @@ final class Renderer: NSObject, MTKViewDelegate {
     }
     
     func makeResources(numCells: Int) {
-//        let instanceConstantsSize = numCells * MemoryLayout<InstanceConstants>.stride
-//        let frameConstantsSize = MemoryLayout<FrameConstants>.stride
-//        let lightConstantsSize = lights.count * MemoryLayout<LightConstants>.stride
-//        let constantBufferLength = instanceConstantsSize + frameConstantsSize + lightConstantsSize
-        let constantBufferLength = MaxConstantsSize
-        print("constantBufferLength: \(constantBufferLength)")
-        print("constantBufferLength (in MB): \(constantBufferLength / (1024 * 1024))")
-        constantBuffer = device.makeBuffer(length: constantBufferLength, options: .storageModeShared)
+        let instanceConstantsSize = numCells * MemoryLayout<InstanceConstants>.self.stride
+        let frameConstantsSize = MemoryLayout<FrameConstants>.self.stride
+        let lightConstantsSize = lights.count * MemoryLayout<LightConstants>.self.stride
+        constantsBufferSize = (instanceConstantsSize + frameConstantsSize + lightConstantsSize)
+        constantsBufferSize *= (MaxOutstandingFrameCount + 1)
+        print("constantsBufferSize (in MB): \(constantsBufferSize / (1024 * 1024))")
+        constantBuffer = device.makeBuffer(length: constantsBufferSize, options: .storageModeShared)
 //        constantBuffer = device.makeBuffer(length: constantBufferLength, options: .storageModeManaged)
         constantBuffer.label = "Dynamic Constants Buffer"
     }
@@ -151,7 +152,7 @@ final class Renderer: NSObject, MTKViewDelegate {
     func allocateConstantStorage(size: Int, alignment: Int) -> Int {
         let effectiveAlignment = lcm(alignment, MinBufferAlignment)
         var allocationOffset = align(currentConstantBufferOffset, upTo: effectiveAlignment)
-        if (allocationOffset + size >= MaxConstantsSize) {
+        if (allocationOffset + size >= constantsBufferSize) {
             allocationOffset = 0
         }
         currentConstantBufferOffset = allocationOffset + size
@@ -215,8 +216,8 @@ final class Renderer: NSObject, MTKViewDelegate {
                     DispatchQueue.concurrentPerform(iterations: self.gridSize) { x in
                         DispatchQueue.concurrentPerform(iterations: self.gridSize) { y in
                             let i = x + (y * self.gridSize)
-                            instanceConstants[i] = InstanceConstants(modelMatrix: buffer[i].node.worldTransform,
-                                                                     color: buffer[i].node.color)
+                            instanceConstants[i] = InstanceConstants(modelMatrix: buffer[i].transform,
+                                                                     color: buffer[i].color)
                         }
                     }
                 }
@@ -313,8 +314,8 @@ final class Renderer: NSObject, MTKViewDelegate {
             commandBuffer.commit()
             
             let constantSize = currentConstantBufferOffset - initialConstantOffset
-            if (constantSize > MaxConstantsSize / MaxOutstandingFrameCount) {
-                print("Insufficient constant storage: frame consumed \(constantSize) bytes of total \(MaxConstantsSize) bytes")
+            if (constantSize > constantsBufferSize / MaxOutstandingFrameCount) {
+                print("Insufficient constant storage: frame consumed \(constantSize) bytes of total \(constantsBufferSize) bytes")
             }
             
             frameIndex += 1

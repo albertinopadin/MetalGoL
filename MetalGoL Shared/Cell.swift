@@ -67,19 +67,19 @@ public final class Cell {
     
     @inlinable
     public final func makeLive() {
-        setState(state: true)
+        setState(live: true)
         alpha = CellAlpha.live
     }
     
     @inlinable
     public final func makeDead() {
-        setState(state: false)
+        setState(live: false)
         alpha = CellAlpha.dead
     }
     
     @inlinable
-    public final func setState(state: Bool) {
-        currentState = state
+    public final func setState(live: Bool) {
+        currentState = live
         alive = currentState
         nextState = currentState
     }

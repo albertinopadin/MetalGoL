@@ -172,6 +172,27 @@ final class Grid {
             }
         }
         
+//        cells.forEach({ $0.prepareUpdate() })
+//        cells.lazy.filter({ $0.needsUpdate() }).forEach({ $0.update() })
+        
+//        updateQueue.sync {
+//            DispatchQueue.concurrentPerform(iterations: self.xCount) { x in
+//                DispatchQueue.concurrentPerform(iterations: self.yCount) { y in
+//                    self.cells[x + y*xCount].prepareUpdate()
+//                }
+//            }
+//        }
+//
+//        updateQueue.sync {
+//            DispatchQueue.concurrentPerform(iterations: self.xCount) { x in
+//                DispatchQueue.concurrentPerform(iterations: self.yCount) { y in
+//                    if self.cells[x + y*xCount].needsUpdate() {
+//                        self.cells[x + y*xCount].update()
+//                    }
+//                }
+//            }
+//        }
+        
         generation += 1
         return generation
     }

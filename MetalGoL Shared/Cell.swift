@@ -8,9 +8,6 @@
 import Metal
 import MetalKit
 
-public enum CellState {
-    case Live, Dead
-}
 
 public struct CellAlpha {
     public static let live: Float = 1.0
@@ -26,8 +23,8 @@ public final class Cell {
     public static let squareNodeSize: Float = 0.92
     public static let circleNodeSize: Float = 0.4
     
-    public final var currentState: CellState
-    public final var nextState: CellState
+    public final var currentState: Bool
+    public final var nextState: Bool
     public final var alive: Bool
     
     public final var neighbors: ContiguousArray<Cell>
@@ -60,7 +57,7 @@ public final class Cell {
     public init(color: SIMD4<Float>,
                 position: SIMD3<Float>,
                 alive: Bool = false) {
-        self.currentState = alive ? .Live: .Dead
+        self.currentState = alive
         self.nextState = self.currentState
         self.neighbors = ContiguousArray<Cell>()
         self.alive = alive
@@ -70,20 +67,20 @@ public final class Cell {
     
     @inlinable
     public final func makeLive() {
-        setState(state: .Live)
+        setState(state: true)
         alpha = CellAlpha.live
     }
     
     @inlinable
     public final func makeDead() {
-        setState(state: .Dead)
+        setState(state: false)
         alpha = CellAlpha.dead
     }
     
     @inlinable
-    public final func setState(state: CellState) {
+    public final func setState(state: Bool) {
         currentState = state
-        alive = currentState == .Live
+        alive = currentState
         nextState = currentState
     }
     
@@ -93,15 +90,15 @@ public final class Cell {
         // For some reason doing this directly is faster than calling the extension:
         liveNeighbors = neighbors.lazy.filter({ $0.alive }).count
         
-        if !(currentState == .Dead && liveNeighbors < 3) {
-            nextState = (currentState == .Live && liveNeighbors == 2) || (liveNeighbors == 3) ? .Live: .Dead
+        if !(!currentState && liveNeighbors < 3) {
+            nextState = (currentState && liveNeighbors == 2) || (liveNeighbors == 3)
         }
     }
     
     @inlinable
     public final func update() {
         if needsUpdate() {
-            if nextState == .Live {
+            if nextState {
                 makeLive()
             } else {
                 makeDead()

@@ -63,11 +63,21 @@ class GameViewController: NSViewController {
         
         let frameDuration = 1.0 / Double(mtkView.preferredFramesPerSecond)
         print("Frame duration: \(frameDuration)")
-        Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: false) { [weak self] _ in
-            self?.updateCamera(Float(frameDuration))
-        }
+        
+//        Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: false) { [weak self] _ in
+//            self?.updateCamera(Float(frameDuration))
+//        }
+//
+//        Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: true) { [weak self] _ in
+//            let t_update = timeit {
+//                _ = self?.renderer.grid.update()
+//            }
+//            print("Run time for Grid update: \(Double(t_update)/1_000_000) ms")
+//        }
         
         Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: true) { [weak self] _ in
+            self?.updateCamera(Float(frameDuration))
+            
             let t_update = timeit {
                 _ = self?.renderer.grid.update()
             }

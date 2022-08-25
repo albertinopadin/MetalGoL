@@ -47,8 +47,6 @@ final class Renderer: NSObject, MTKViewDelegate {
     let pointOfView = Node()
     var lights = [Light]()
     
-    let gridSize = 700
-    
     private var vertexDescriptor: MTLVertexDescriptor!
     private var mdlVertexDescriptor: MDLVertexDescriptor!
     
@@ -67,10 +65,12 @@ final class Renderer: NSObject, MTKViewDelegate {
     private let projectionFrameNear: Float = 0.01
     private let projectionFrameFar: Float = 500
     
-    private let updateQueue = DispatchQueue(label: "metaltest.update.queue",
+    private let updateQueue = DispatchQueue(label: "metalgol.update.queue",
                                             qos: .userInteractive)
     
+    let gridSize = 400
     public var grid: Grid!
+    let cellShape = CellShape.Circle
     
     private var constantsBufferSize: Int = 0
     
@@ -109,7 +109,11 @@ final class Renderer: NSObject, MTKViewDelegate {
         // TODO: Set up rest of scene using nodes
         let mdlAllocator = MTKMeshBufferAllocator(device: device)
         
-        grid = Grid(gridSize, gridSize, device: device, allocator: mdlAllocator, vertexDescriptor: mdlVertexDescriptor)
+        grid = Grid(gridSize, gridSize,
+                    device: device,
+                    allocator: mdlAllocator,
+                    vertexDescriptor: mdlVertexDescriptor,
+                    shape: cellShape)
         grid.randomState(liveProbability: 0.25)
         print("Number of nodes: \(grid.cells.count)")
         

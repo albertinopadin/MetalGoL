@@ -40,6 +40,9 @@ struct InstanceConstants {
 
 
 final class Renderer: NSObject, MTKViewDelegate {
+    private static let DefaultProjectionFrameNear: Float = 0.01
+    private static let DefaultProjectionFrameFar: Float = 500
+    
     let device: MTLDevice
     let commandQueue: MTLCommandQueue
     let view: MTKView
@@ -62,22 +65,27 @@ final class Renderer: NSObject, MTKViewDelegate {
     private var frameIndex = 0
     private var time: TimeInterval = 0
     
-    private let projectionFrameNear: Float = 0.01
-    private let projectionFrameFar: Float = 500
+    private let nearClip: Float
+    private let farClip: Float
     
     private let updateQueue = DispatchQueue(label: "metalgol.update.queue",
                                             qos: .userInteractive)
     
-    let gridSize = 400
+    let gridSize = 500
     public var grid: Grid!
-    let cellShape = CellShape.Circle
+    let cellShape = CellShape.Square
     
     private var constantsBufferSize: Int = 0
     
-    init(device: MTLDevice, view: MTKView) {
+    init(device: MTLDevice,
+         view: MTKView,
+         nearClip: Float = DefaultProjectionFrameNear,
+         farClip: Float = DefaultProjectionFrameFar) {
         view.device = device
         self.device = device
         self.view = view
+        self.nearClip = nearClip
+        self.farClip = farClip
         self.commandQueue = device.makeCommandQueue()!
         
         super.init()
@@ -93,20 +101,10 @@ final class Renderer: NSObject, MTKViewDelegate {
     }
     
     func makeScene() {
-        mdlVertexDescriptor = MDLVertexDescriptor()
-        mdlVertexDescriptor.attributes[0] = MDLVertexAttribute(name: MDLVertexAttributePosition,
-                                                               format: .float3,
-                                                               offset: 0,
-                                                               bufferIndex: 0)
-        mdlVertexDescriptor.attributes[1] = MDLVertexAttribute(name: MDLVertexAttributeNormal,
-                                                               format: .float3,
-                                                               offset: 12,
-                                                               bufferIndex: 0)
-        mdlVertexDescriptor.layouts[0] = MDLVertexBufferLayout(stride: 24)
+        mdlVertexDescriptor = createMDLVertexDescriptor()
         
         vertexDescriptor = MTKMetalVertexDescriptorFromModelIO(mdlVertexDescriptor)!
         
-        // TODO: Set up rest of scene using nodes
         let mdlAllocator = MTKMeshBufferAllocator(device: device)
         
         grid = Grid(gridSize, gridSize,
@@ -114,13 +112,27 @@ final class Renderer: NSObject, MTKViewDelegate {
                     allocator: mdlAllocator,
                     vertexDescriptor: mdlVertexDescriptor,
                     shape: cellShape)
-        grid.randomState(liveProbability: 0.25)
+        grid.randomState(liveProbability: Grid.DefaultLiveProbability)
         print("Number of nodes: \(grid.cells.count)")
         
         let ambientLight = Light()
         ambientLight.type = .ambient
         ambientLight.intensity = 1.0
         lights.append(ambientLight)
+    }
+    
+    func createMDLVertexDescriptor() -> MDLVertexDescriptor {
+        let mdlVD = MDLVertexDescriptor()
+        mdlVD.attributes[0] = MDLVertexAttribute(name: MDLVertexAttributePosition,
+                                                 format: .float3,
+                                                 offset: 0,
+                                                 bufferIndex: 0)
+        mdlVD.attributes[1] = MDLVertexAttribute(name: MDLVertexAttributeNormal,
+                                                 format: .float3,
+                                                 offset: 12,
+                                                 bufferIndex: 0)
+        mdlVD.layouts[0] = MDLVertexBufferLayout(stride: 24)
+        return mdlVD
     }
     
     func makeResources(numCells: Int) {
@@ -167,8 +179,8 @@ final class Renderer: NSObject, MTKViewDelegate {
         let aspectRatio = Float(view.drawableSize.width / view.drawableSize.height)
         let projectionMatrix = simd_float4x4(perspectiveProjectionFoVY: .pi / 3,
                                              aspectRatio: aspectRatio,
-                                             near: projectionFrameNear,
-                                             far: projectionFrameFar)
+                                             near: nearClip,
+                                             far: farClip)
         
         let cameraMatrix = pointOfView.worldTransform
         let viewMatrix = cameraMatrix.inverse
@@ -283,11 +295,10 @@ final class Renderer: NSObject, MTKViewDelegate {
                 renderCommandEncoder.setFragmentBuffer(constantBuffer, offset: frameConstantsOffset, index: 3)
                 renderCommandEncoder.setFragmentBuffer(constantBuffer, offset: lightConstantsOffset, index: 4)
                 
+                renderCommandEncoder.setVertexBuffer(constantBuffer, offset: nodeConstantsOffsets[0], index: 2)
                 
                 let t_main_loop = timeit {
                     let mesh = grid.cellMesh
-                    
-                    renderCommandEncoder.setVertexBuffer(constantBuffer, offset: nodeConstantsOffsets[0], index: 2)
                     
                     for (i, meshBuffer) in mesh.vertexBuffers.enumerated() {
                         renderCommandEncoder.setVertexBuffer(meshBuffer.buffer, offset: meshBuffer.offset, index: i)

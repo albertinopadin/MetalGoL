@@ -32,6 +32,12 @@ class GameViewController: NSViewController {
     var currentMousePoint = CGPoint.zero
     var keysPressed = [Bool](repeating: false, count: Int(UInt16.max))
     var gameController: GCController?
+    
+    let nearClip: Float = 0.01
+    let farClip: Float = 500
+    let eyeZPosition: Float = 400
+    
+    var gameRunning: Bool = false
 
     private var observers = [Any]()
     
@@ -55,12 +61,13 @@ class GameViewController: NSViewController {
             return
         }
         
-        renderer = Renderer(device: defaultDevice, view: mtkView)
+        renderer = Renderer(device: defaultDevice, view: mtkView, nearClip: nearClip, farClip: farClip)
         renderer.mtkView(mtkView, drawableSizeWillChange: mtkView.drawableSize)
         
         cameraController = FlyCameraController(pointOfView: renderer.pointOfView)
-        cameraController.eye = SIMD3<Float>(0, 0, 100)
+        cameraController.eye = SIMD3<Float>(0, 0, eyeZPosition)
         
+        mtkView.preferredFramesPerSecond = 120
         let frameDuration = 1.0 / Double(mtkView.preferredFramesPerSecond)
         print("Frame duration: \(frameDuration)")
         
@@ -76,15 +83,29 @@ class GameViewController: NSViewController {
 //        }
         
         Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: true) { [weak self] _ in
-            self?.updateCamera(Float(frameDuration))
+            self!.updateCamera(Float(frameDuration))
             
-            let t_update = timeit {
-                _ = self?.renderer.grid.update()
+            if self!.gameRunning {
+                let t_update = timeit {
+                    _ = self?.renderer.grid.update()
+                }
+                print("Run time for Grid update: \(Double(t_update)/1_000_000) ms")
             }
-            print("Run time for Grid update: \(Double(t_update)/1_000_000) ms")
         }
         
         registerControllerObservers()
+    }
+    
+    func toggleGameRunning() {
+        gameRunning.toggle()
+    }
+    
+    func reset() {
+        renderer.grid.reset()
+    }
+    
+    func randomize() {
+        renderer.grid.randomState(liveProbability: Grid.DefaultLiveProbability)
     }
     
     func updateCamera(_ timestep: Float) {

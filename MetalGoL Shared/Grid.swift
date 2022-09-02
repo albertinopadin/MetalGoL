@@ -9,6 +9,8 @@ import Foundation
 import MetalKit
 
 final class Grid {
+    public static let DefaultLiveProbability: Double = 0.25
+    
     let xCount: Int
     let yCount: Int
     let totalCount: Int

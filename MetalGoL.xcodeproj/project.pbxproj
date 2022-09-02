@@ -60,6 +60,7 @@
 		CE20468628A0845B0007BD14 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468528A0845B0007BD14 /* Colors.swift */; };
 		CE20468728A0845B0007BD14 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468528A0845B0007BD14 /* Colors.swift */; };
 		CE20468828A0845B0007BD14 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468528A0845B0007BD14 /* Colors.swift */; };
+		CE7F490028C1C51E0082B197 /* GameWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7F48FF28C1C51E0082B197 /* GameWindowController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -92,6 +93,7 @@
 		CE20467D289FD03D0007BD14 /* Cell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cell.swift; sourceTree = "<group>"; };
 		CE20468128A081A80007BD14 /* Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
 		CE20468528A0845B0007BD14 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		CE7F48FF28C1C51E0082B197 /* GameWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -190,6 +192,7 @@
 				CE204644289F47E30007BD14 /* GameViewController.swift */,
 				CE204646289F47E30007BD14 /* Main.storyboard */,
 				CE204649289F47E30007BD14 /* MetalGoL_macOS.entitlements */,
+				CE7F48FF28C1C51E0082B197 /* GameWindowController.swift */,
 			);
 			path = "MetalGoL macOS";
 			sourceTree = "<group>";
@@ -383,6 +386,7 @@
 				CE204645289F47E30007BD14 /* GameViewController.swift in Sources */,
 				CE204664289F91600007BD14 /* Renderer.swift in Sources */,
 				CE204643289F47E30007BD14 /* AppDelegate.swift in Sources */,
+				CE7F490028C1C51E0082B197 /* GameWindowController.swift in Sources */,
 				CE20467C289F93250007BD14 /* MathUtils.swift in Sources */,
 				CE20466C289F91FD0007BD14 /* Node.swift in Sources */,
 			);
@@ -680,6 +684,7 @@
 				DEVELOPMENT_TEAM = W6KXUJP8M6;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -710,6 +715,7 @@
 				DEVELOPMENT_TEAM = W6KXUJP8M6;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;

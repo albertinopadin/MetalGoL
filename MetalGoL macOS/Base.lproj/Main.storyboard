@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11134" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="20037" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11134"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="20037"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--Application-->
@@ -673,7 +674,7 @@
                         <outlet property="delegate" destination="Voe-Tx-rLC" id="PrD-fu-P6m"/>
                     </connections>
                 </application>
-                <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModuleProvider="target"/>
+                <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="MetalGoL" customModuleProvider="target"/>
                 <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
                 <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -682,14 +683,132 @@
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">
             <objects>
-                <windowController id="B8D-0N-5wS" sceneMemberID="viewController">
+                <windowController id="B8D-0N-5wS" customClass="GameWindowController" customModule="MetalGoL" customModuleProvider="target" sceneMemberID="viewController">
                     <window key="window" title="MetalGoL macOS" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="IQv-IB-iLA">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-                        <rect key="contentRect" x="196" y="240" width="480" height="270"/>
+                        <rect key="contentRect" x="584" y="369" width="480" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+                        <toolbar key="toolbar" implicitIdentifier="162E2DD2-B230-41DE-8364-582ED8EFE4B8" centeredItem="rs4-qQ-Gsz" autosavesConfiguration="NO" displayMode="iconOnly" sizeMode="regular" id="ndE-Xp-cNf">
+                            <allowedToolbarItems>
+                                <toolbarItem implicitItemIdentifier="3A2FC3EF-ED47-4D64-8177-1725DB832B72" label="" paletteLabel="RunButton" title="Run" sizingBehavior="auto" id="FQ2-3x-JBU">
+                                    <nil key="toolTip"/>
+                                    <button key="view" verticalHuggingPriority="750" id="fiC-dt-EIY">
+                                        <rect key="frame" x="0.0" y="14" width="82" height="32"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="push" title="Run" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="e6c-EH-d1L">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="playPauseToggled:" target="B8D-0N-5wS" id="ERS-3b-Wem"/>
+                                        </connections>
+                                    </button>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="54B89D1B-9168-4143-84CC-C59749CA7899" label="" paletteLabel="ResetButton" bordered="YES" title="Reset" sizingBehavior="auto" id="ZkF-x9-DJX">
+                                    <nil key="toolTip"/>
+                                    <button key="view" verticalHuggingPriority="750" id="Lae-XL-Ril">
+                                        <rect key="frame" x="0.0" y="14" width="82" height="32"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="push" title="Reset" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Zhg-9R-uga">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="reset:" target="B8D-0N-5wS" id="03O-BN-jA7"/>
+                                        </connections>
+                                    </button>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="3FFD0693-CD5D-41FD-AB74-5921A8D8D4DA" label="" paletteLabel="RandomButton" bordered="YES" title="Random" sizingBehavior="auto" id="pyZ-bx-3gB">
+                                    <nil key="toolTip"/>
+                                    <button key="view" verticalHuggingPriority="750" id="vAH-6m-F2Z">
+                                        <rect key="frame" x="2" y="14" width="82" height="32"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="push" title="Random" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="0dy-fw-9UT">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="randomize:" target="B8D-0N-5wS" id="rO5-Bk-0sN"/>
+                                        </connections>
+                                    </button>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="c2s-2S-jdg">
+                                    <connections>
+                                        <action selector="setColor:" target="B8D-0N-5wS" id="XhH-0a-U3L"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="9FEE5BEB-6865-4C9B-98FD-5659D74124F4" label="" paletteLabel="GenerationLabel" title="Generation:" sizingBehavior="auto" id="BKE-Oa-Ccf">
+                                    <nil key="toolTip"/>
+                                    <textField key="view" horizontalHuggingPriority="251" verticalHuggingPriority="750" id="Miv-aA-xiD">
+                                        <rect key="frame" x="8" y="14" width="79" height="16"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <textFieldCell key="cell" lineBreakMode="clipping" title="Generation:" id="hNd-bT-zJa">
+                                            <font key="font" usesAppearanceFont="YES"/>
+                                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        </textFieldCell>
+                                    </textField>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="A5FBD354-969C-4EAA-A586-96FEFDBECFFE" label="" paletteLabel="GenerationNum" sizingBehavior="auto" id="GCR-l8-vRu">
+                                    <nil key="toolTip"/>
+                                    <textField key="view" horizontalHuggingPriority="251" verticalHuggingPriority="750" id="Guq-zP-xJv">
+                                        <rect key="frame" x="37" y="14" width="17" height="16"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <textFieldCell key="cell" lineBreakMode="clipping" title="0" id="B4A-Iu-iJr">
+                                            <font key="font" usesAppearanceFont="YES"/>
+                                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        </textFieldCell>
+                                    </textField>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="W4y-0x-5Ez"/>
+                                <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="alj-Be-Pft"/>
+                                <toolbarItem implicitItemIdentifier="F8C1D68C-674D-4518-AE48-AD60381E41E5" label="" paletteLabel="Speed" sizingBehavior="auto" id="rs4-qQ-Gsz">
+                                    <nil key="toolTip"/>
+                                    <slider key="view" verticalHuggingPriority="750" id="dfk-B2-CKX">
+                                        <rect key="frame" x="0.0" y="14" width="96" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <sliderCell key="cell" state="on" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="diZ-8b-KVT"/>
+                                        <connections>
+                                            <action selector="setSpeed:" target="B8D-0N-5wS" id="ZAG-0b-nNN"/>
+                                        </connections>
+                                    </slider>
+                                    <connections>
+                                        <action selector="setSpeed:" target="B8D-0N-5wS" id="FIb-BD-xFu"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="23B5E28E-3A0E-421E-972B-274CBE5D7764" label="" paletteLabel="Zoom" sizingBehavior="auto" id="sbL-Hd-1wS">
+                                    <nil key="toolTip"/>
+                                    <slider key="view" verticalHuggingPriority="750" id="PHh-bt-L9x">
+                                        <rect key="frame" x="0.0" y="14" width="96" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <sliderCell key="cell" state="on" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="wio-8o-eUe"/>
+                                        <connections>
+                                            <action selector="setZoom:" target="B8D-0N-5wS" id="gdo-Fb-2Kn"/>
+                                        </connections>
+                                    </slider>
+                                </toolbarItem>
+                            </allowedToolbarItems>
+                            <defaultToolbarItems>
+                                <toolbarItem reference="c2s-2S-jdg"/>
+                                <toolbarItem reference="FQ2-3x-JBU"/>
+                                <toolbarItem reference="ZkF-x9-DJX"/>
+                                <toolbarItem reference="pyZ-bx-3gB"/>
+                                <toolbarItem reference="BKE-Oa-Ccf"/>
+                                <toolbarItem reference="GCR-l8-vRu"/>
+                                <toolbarItem reference="rs4-qQ-Gsz"/>
+                                <toolbarItem reference="sbL-Hd-1wS"/>
+                                <toolbarItem reference="alj-Be-Pft"/>
+                            </defaultToolbarItems>
+                        </toolbar>
+                        <connections>
+                            <outlet property="delegate" destination="B8D-0N-5wS" id="etH-hL-E0j"/>
+                        </connections>
                     </window>
                     <connections>
+                        <outlet property="generationLabel" destination="Guq-zP-xJv" id="1KN-gz-C55"/>
+                        <outlet property="playPauseButton" destination="fiC-dt-EIY" id="apc-NR-GYZ"/>
                         <segue destination="XfG-lQ-9wD" kind="relationship" relationship="window.shadowedContentViewController" id="cq2-FE-JQM"/>
                     </connections>
                 </windowController>
@@ -697,10 +816,10 @@
             </objects>
             <point key="canvasLocation" x="75" y="250"/>
         </scene>
-        <!--View Controller-->
+        <!--Game View Controller-->
         <scene sceneID="hIz-AP-VOD">
             <objects>
-                <viewController id="XfG-lQ-9wD" customClass="GameViewController" customModuleProvider="target"  sceneMemberID="viewController">
+                <viewController id="XfG-lQ-9wD" customClass="GameViewController" customModule="MetalGoL" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="m2S-Jp-Qdl" customClass="MTKView">
                         <rect key="frame" x="0.0" y="0.0" width="800" height="600"/>
                         <autoresizingMask key="autoresizingMask"/>

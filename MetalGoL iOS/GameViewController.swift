@@ -25,6 +25,12 @@ class GameViewController: UIViewController {
         // Select the device to render with.  We choose the default device
         guard let defaultDevice = MTLCreateSystemDefaultDevice() else {
             print("Metal is not supported")
+            @IBAction func playPauseToggled(_ sender: Any) {
+            }
+            @IBAction func playPauseToggled(_ sender: Any) {
+            }
+            @IBAction func playPauseToggled(_ sender: Any) {
+            }
             return
         }
 

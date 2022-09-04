@@ -22,6 +22,9 @@ enum VirtualKey: Int {
     case upArrow    = 0x7E
 }
 
+protocol GameWindowDelegate {
+    func setGeneration(_ generation: UInt64)
+}
 
 // Our macOS specific view controller
 class GameViewController: NSViewController {
@@ -37,7 +40,13 @@ class GameViewController: NSViewController {
     let farClip: Float = 500
     let eyeZPosition: Float = 400
     
+    var generation: UInt64 = 0
     var gameRunning: Bool = false
+    var previousTime: TimeInterval = 0
+    var currentTime: TimeInterval = 0
+    var updateInterval: TimeInterval = 0
+    
+    var delegate: GameWindowDelegate?
 
     private var observers = [Any]()
     
@@ -71,26 +80,18 @@ class GameViewController: NSViewController {
         let frameDuration = 1.0 / Double(mtkView.preferredFramesPerSecond)
         print("Frame duration: \(frameDuration)")
         
-//        Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: false) { [weak self] _ in
-//            self?.updateCamera(Float(frameDuration))
-//        }
-//
-//        Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: true) { [weak self] _ in
-//            let t_update = timeit {
-//                _ = self?.renderer.grid.update()
-//            }
-//            print("Run time for Grid update: \(Double(t_update)/1_000_000) ms")
-//        }
-        
         Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: true) { [weak self] _ in
             self!.updateCamera(Float(frameDuration))
             
-            if self!.gameRunning {
+            if self!.gameRunning && self!.currentTime >= (self!.previousTime + self!.updateInterval) {
+                self!.previousTime = self!.currentTime
                 let t_update = timeit {
-                    _ = self?.renderer.grid.update()
+                    self!.generation = self!.renderer.grid.update()
+                    self!.delegate?.setGeneration(self!.generation)
                 }
                 print("Run time for Grid update: \(Double(t_update)/1_000_000) ms")
             }
+            self!.currentTime += frameDuration
         }
         
         registerControllerObservers()
@@ -102,10 +103,19 @@ class GameViewController: NSViewController {
     
     func reset() {
         renderer.grid.reset()
+        generation = 0
+        delegate?.setGeneration(generation)
+        if gameRunning {
+            gameRunning.toggle()
+        }
     }
     
     func randomize() {
         renderer.grid.randomState(liveProbability: Grid.DefaultLiveProbability)
+    }
+    
+    func setSpeed(_ speed: Int) {
+        updateInterval = 1 / Double(speed)
     }
     
     func updateCamera(_ timestep: Float) {

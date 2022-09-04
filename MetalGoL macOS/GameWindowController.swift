@@ -12,10 +12,10 @@ enum GameState: String {
     case pause = "Pause"
 }
 
-class GameWindowController: NSWindowController {
-    
+class GameWindowController: NSWindowController, GameWindowDelegate {
     @IBOutlet weak var playPauseButton: NSButton!
     @IBOutlet weak var generationLabel: NSTextField!
+    @IBOutlet weak var speedLabel: NSTextField!
     
     var gameVC: GameViewController!
     
@@ -24,13 +24,13 @@ class GameWindowController: NSWindowController {
     
         // Implement this method to handle any initialization after your window controller's window has been loaded from its nib file.
         gameVC = self.contentViewController as? GameViewController
+        gameVC.delegate = self
     }
     
     @IBAction func setColor(_ sender: Any) {
     }
     
-    @IBAction func playPauseToggled(_ sender: NSButton) {
-        gameVC.toggleGameRunning()
+    func setPlayPauseButtonText() {
         if gameVC.gameRunning {
             playPauseButton.title = GameState.pause.rawValue
         } else {
@@ -38,8 +38,18 @@ class GameWindowController: NSWindowController {
         }
     }
     
+    @IBAction func playPauseToggled(_ sender: NSButton) {
+        gameVC.toggleGameRunning()
+        setPlayPauseButtonText()
+    }
+    
+    func setGeneration(_ generation: UInt64) {
+        generationLabel.integerValue = Int(generation)
+    }
+    
     @IBAction func reset(_ sender: NSButton) {
         gameVC.reset()
+        setPlayPauseButtonText()
     }
     
     @IBAction func randomize(_ sender: NSButton) {
@@ -47,6 +57,8 @@ class GameWindowController: NSWindowController {
     }
     
     @IBAction func setSpeed(_ sender: NSSlider) {
+        gameVC.setSpeed(sender.integerValue)
+        speedLabel.intValue = sender.intValue
     }
     
     @IBAction func setZoom(_ sender: NSSlider) {

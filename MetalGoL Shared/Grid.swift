@@ -28,7 +28,8 @@ final class Grid {
          device: MTLDevice,
          allocator: MDLMeshBufferAllocator,
          vertexDescriptor: MDLVertexDescriptor,
-         shape: CellShape = .Square) {
+         shape: CellShape = .Square,
+         color: SIMD4<Float> = GREEN_COLOR) {
         xCount = xCells
         yCount = yCells
         totalCount = xCells * yCells
@@ -51,7 +52,7 @@ final class Grid {
         let startY = -Float(yCells/2)
         for xc in 0..<xCells {
             for yc in 0..<yCells {
-                let cell = Cell(color: GREEN_COLOR,
+                let cell = Cell(color: color,
                                 position: SIMD3<Float>(startX + Float(xc), startY + Float(yc), 0))
                 
                 cells.append(cell)
@@ -148,6 +149,17 @@ final class Grid {
         }
         
         return neighbors
+    }
+    
+    public func setGridCellsColor(_ color: SIMD3<Float>) {
+        updateQueue.sync {
+            DispatchQueue.concurrentPerform(iterations: self.xCount) { x in
+                DispatchQueue.concurrentPerform(iterations: self.yCount) { y in
+                    let cell = self.cells[x + y*xCount]
+                    cell.color = SIMD4<Float>(color.x, color.y, color.z, cell.alpha)
+                }
+            }
+        }
     }
     
     // Update cells using Conway's Rules of Life:

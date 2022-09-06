@@ -12,7 +12,7 @@ enum GameState: String {
     case pause = "Pause"
 }
 
-class GameWindowController: NSWindowController, GameWindowDelegate {
+class GameWindowController: NSWindowController, GameWindowDelegate, NSColorChanging {
     @IBOutlet weak var playPauseButton: NSButton!
     @IBOutlet weak var generationLabel: NSTextField!
     @IBOutlet weak var speedLabel: NSTextField!
@@ -27,7 +27,11 @@ class GameWindowController: NSWindowController, GameWindowDelegate {
         gameVC.delegate = self
     }
     
-    @IBAction func setColor(_ sender: Any) {
+    func changeColor(_ sender: NSColorPanel?) {
+        let color = sender!.color
+        gameVC.setGridColor(SIMD3<Float>(Float(color.redComponent),
+                                         Float(color.greenComponent),
+                                         Float(color.blueComponent)))
     }
     
     func setPlayPauseButtonText() {

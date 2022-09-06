@@ -18,7 +18,6 @@ public enum CellShape {
     case Square, Circle
 }
 
-
 public final class Cell {
     public static let squareNodeSize: Float = 0.92
     public static let circleNodeSize: Float = 0.4

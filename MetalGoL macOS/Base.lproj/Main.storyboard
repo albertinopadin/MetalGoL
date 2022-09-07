@@ -817,9 +817,9 @@
                                 <toolbarItem implicitItemIdentifier="23B5E28E-3A0E-421E-972B-274CBE5D7764" label="" paletteLabel="Zoom" sizingBehavior="auto" id="sbL-Hd-1wS">
                                     <nil key="toolTip"/>
                                     <slider key="view" verticalHuggingPriority="750" id="PHh-bt-L9x">
-                                        <rect key="frame" x="0.0" y="14" width="96" height="28"/>
+                                        <rect key="frame" x="5" y="14" width="28" height="28"/>
                                         <autoresizingMask key="autoresizingMask"/>
-                                        <sliderCell key="cell" state="on" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="wio-8o-eUe"/>
+                                        <sliderCell key="cell" continuous="YES" state="on" alignment="left" minValue="1" maxValue="1000" doubleValue="400" tickMarkPosition="above" sliderType="linear" id="wio-8o-eUe"/>
                                         <connections>
                                             <action selector="setZoom:" target="B8D-0N-5wS" id="gdo-Fb-2Kn"/>
                                         </connections>

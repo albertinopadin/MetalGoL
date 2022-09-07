@@ -66,5 +66,6 @@ class GameWindowController: NSWindowController, GameWindowDelegate, NSColorChang
     }
     
     @IBAction func setZoom(_ sender: NSSlider) {
+        gameVC.setZoom(sender.integerValue)
     }
 }

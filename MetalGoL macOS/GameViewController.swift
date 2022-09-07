@@ -37,9 +37,9 @@ class GameViewController: NSViewController {
     var gameController: GCController?
     
     let nearClip: Float = 0.01
-    let farClip: Float = 500
-    let eyeZPosition: Float = 400
+    let farClip: Float = 1000
     
+    var eyeZPosition: Float = 400
     var generation: UInt64 = 0
     var gameRunning: Bool = false
     var previousTime: TimeInterval = 0
@@ -97,6 +97,7 @@ class GameViewController: NSViewController {
         // TODO: This is a hack - Timer doesn't guarantee exact timings, so will eventually have to move
         //       to using CADisplayLink:
         let timer = Timer(timeInterval: frameDuration, repeats: true) { [weak self] _ in
+            self!.cameraController.eye = SIMD3<Float>(0, 0, self!.eyeZPosition)
             self!.updateCamera(Float(frameDuration))
             
             if self!.gameRunning && self!.currentTime >= (self!.previousTime + self!.updateInterval) {
@@ -138,6 +139,10 @@ class GameViewController: NSViewController {
     
     func setSpeed(_ speed: Int) {
         updateInterval = 1 / Double(speed)
+    }
+    
+    func setZoom(_ zoom: Int) {
+        eyeZPosition = Float(zoom)
     }
     
     func updateCamera(_ timestep: Float) {

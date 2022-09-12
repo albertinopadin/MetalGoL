@@ -80,38 +80,30 @@ class GameViewController: NSViewController {
         let frameDuration = 1.0 / Double(mtkView.preferredFramesPerSecond)
         print("Frame duration: \(frameDuration)")
         
-//        Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: true) { [weak self] _ in
-//            self!.updateCamera(Float(frameDuration))
-//
-//            if self!.gameRunning && self!.currentTime >= (self!.previousTime + self!.updateInterval) {
-//                self!.previousTime = self!.currentTime
-//                let t_update = timeit {
-//                    self!.generation = self!.renderer.grid.update()
-//                    self!.delegate?.setGeneration(self!.generation)
-//                }
-//                print("Run time for Grid update: \(Double(t_update)/1_000_000) ms")
-//            }
-//            self!.currentTime += frameDuration
-//        }
-        
-        // TODO: This is a hack - Timer doesn't guarantee exact timings, so will eventually have to move
-        //       to using CADisplayLink:
-        let timer = Timer(timeInterval: frameDuration, repeats: true) { [weak self] _ in
-            self!.cameraController.eye = SIMD3<Float>(0, 0, self!.eyeZPosition)
-            self!.updateCamera(Float(frameDuration))
-            
-            if self!.gameRunning && self!.currentTime >= (self!.previousTime + self!.updateInterval) {
-                self!.previousTime = self!.currentTime
-                let t_update = timeit {
-                    self!.generation = self!.renderer.grid.update()
-                    self!.delegate?.setGeneration(self!.generation)
+        let displayId = CGMainDisplayID()
+        let displayLinkPointer = UnsafeMutablePointer<CVDisplayLink?>.allocate(capacity: 1)
+        let createDisplayLinkStatus = CVDisplayLinkCreateWithCGDisplay(displayId, displayLinkPointer)
+        if createDisplayLinkStatus == kCVReturnSuccess {
+            CVDisplayLinkSetOutputHandler(displayLinkPointer.pointee!) { [self]
+                (dLink, inNow, inOutputTime, flagsIn, flagsOut) -> CVReturn in
+                cameraController.eye = SIMD3<Float>(0, 0, eyeZPosition)
+                updateCamera(Float(frameDuration))
+                
+                if gameRunning && currentTime >= (previousTime + updateInterval) {
+                    previousTime = currentTime
+                    let t_update = timeit {
+                        generation = renderer.grid.update()
+                        delegate?.setGeneration(generation)
+                    }
+                    print("Run time for Grid update: \(Double(t_update)/1_000_000) ms")
                 }
-                print("Run time for Grid update: \(Double(t_update)/1_000_000) ms")
+                currentTime += frameDuration
+                
+                return kCVReturnSuccess
             }
-            self!.currentTime += frameDuration
+            
+            CVDisplayLinkStart(displayLinkPointer.pointee!)
         }
-        
-        RunLoop.current.add(timer, forMode: .common)
         
         registerControllerObservers()
     }

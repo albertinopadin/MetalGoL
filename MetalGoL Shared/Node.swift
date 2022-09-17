@@ -7,7 +7,6 @@
 
 import MetalKit
 
-
 public final class Node {
     public var color = SIMD4<Float>(1, 1, 1, 1)
     public var transform: simd_float4x4 = matrix_identity_float4x4

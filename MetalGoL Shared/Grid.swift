@@ -5,7 +5,6 @@
 //  Created by Albertino Padin on 8/7/22.
 //
 
-import Foundation
 import MetalKit
 
 final class Grid {
@@ -15,7 +14,7 @@ final class Grid {
     let yCount: Int
     let totalCount: Int
     final var cells = ContiguousArray<Cell>()
-    let cellMesh: MTKMesh
+    let cellMesh: CellMesh
     var generation: UInt64 = 0
     
     final let updateQueue = DispatchQueue(label: "cgol.update.queue",
@@ -35,16 +34,18 @@ final class Grid {
         totalCount = xCells * yCells
         
         switch shape {
-        case .Square:
-            cellMesh = Grid.makeSquareMesh(device: device,
-                                           allocator: allocator,
-                                           vertexDescriptor: vertexDescriptor,
-                                           size: Cell.squareNodeSize)
-        case .Circle:
-            cellMesh = Grid.makeCircleMesh(device: device,
-                                           allocator: allocator,
-                                           vertexDescriptor: vertexDescriptor,
-                                           size: Cell.circleNodeSize)
+            case .Square:
+                cellMesh = CellMesh(type: .Quad,
+                                    size: Cell.squareNodeSize,
+                                    device: device,
+                                    allocator: allocator,
+                                    vertexDescriptor: vertexDescriptor)
+            case .Circle:
+                cellMesh = CellMesh(type: .Sphere,
+                                    size: Cell.circleNodeSize,
+                                    device: device,
+                                    allocator: allocator,
+                                    vertexDescriptor: vertexDescriptor)
         }
         
         // Figure out left and top starting points
@@ -60,34 +61,6 @@ final class Grid {
         }
         
         setNeighborsForAllCellsInGrid()
-    }
-    
-    static func makeSquareMesh(device: MTLDevice,
-                               allocator: MDLMeshBufferAllocator,
-                               vertexDescriptor: MDLVertexDescriptor,
-                               size: Float) -> MTKMesh {
-        let mdlBoxMesh = MDLMesh(boxWithExtent: SIMD3<Float>(size, size, 0.01),
-                                 segments: SIMD3<UInt32>(1, 1, 1),
-                                 inwardNormals: false,
-                                 geometryType: .triangles,
-                                 allocator: allocator)
-        mdlBoxMesh.vertexDescriptor = vertexDescriptor
-        let boxMesh = try! MTKMesh(mesh: mdlBoxMesh, device: device)
-        return boxMesh
-    }
-    
-    static func makeCircleMesh(device: MTLDevice,
-                               allocator: MDLMeshBufferAllocator,
-                               vertexDescriptor: MDLVertexDescriptor,
-                               size: Float) -> MTKMesh {
-        let mdlSphere = MDLMesh(sphereWithExtent: SIMD3<Float>(size, size, size),
-                                segments: SIMD2<UInt32>(8, 8),
-                                inwardNormals: false,
-                                geometryType: .triangles,
-                                allocator: allocator)
-        mdlSphere.vertexDescriptor = vertexDescriptor
-        let sphereMesh = try! MTKMesh(mesh: mdlSphere, device: device)
-        return sphereMesh
     }
     
     private func setNeighborsForAllCellsInGrid() {

@@ -5,9 +5,7 @@
 //  Created by Albertino Padin on 8/6/22.
 //
 
-import Metal
 import MetalKit
-
 
 let MaxOutstandingFrameCount = 3
 let MaxConstantsSize = 1_024 * 1_024 * 256
@@ -18,19 +16,10 @@ struct NodeConstants {
     var color: SIMD4<Float>
 }
 
-struct LightConstants {
-    var viewProjectionMatrix: float4x4
-    var intensity: simd_float3
-    var position: simd_float3
-    var direction: simd_float3
-    var type: UInt32
-}
-
 struct FrameConstants {
     var projectionMatrix: float4x4
     var viewMatrix: float4x4
     var inverseViewDirectionMatrix: float3x3
-    var lightCount: UInt32
 }
 
 struct InstanceConstants {
@@ -48,7 +37,6 @@ final class Renderer: NSObject, MTKViewDelegate {
     let view: MTKView
     
     let pointOfView = Node()
-    var lights = [Light]()
     
     private var vertexDescriptor: MTLVertexDescriptor!
     private var mdlVertexDescriptor: MDLVertexDescriptor!
@@ -114,11 +102,6 @@ final class Renderer: NSObject, MTKViewDelegate {
                     shape: cellShape)
         grid.randomState(liveProbability: Grid.DefaultLiveProbability)
         print("Number of nodes: \(grid.cells.count)")
-        
-        let ambientLight = Light()
-        ambientLight.type = .ambient
-        ambientLight.intensity = 1.0
-        lights.append(ambientLight)
     }
     
     func createMDLVertexDescriptor() -> MDLVertexDescriptor {
@@ -138,8 +121,7 @@ final class Renderer: NSObject, MTKViewDelegate {
     func makeResources(numCells: Int) {
         let instanceConstantsSize = numCells * MemoryLayout<InstanceConstants>.self.stride
         let frameConstantsSize = MemoryLayout<FrameConstants>.self.stride
-        let lightConstantsSize = lights.count * MemoryLayout<LightConstants>.self.stride
-        constantsBufferSize = (instanceConstantsSize + frameConstantsSize + lightConstantsSize)
+        constantsBufferSize = instanceConstantsSize + frameConstantsSize
         constantsBufferSize *= (MaxOutstandingFrameCount + 1)
         print("constantsBufferSize (in MB): \(constantsBufferSize / (1024 * 1024))")
         constantBuffer = device.makeBuffer(length: constantsBufferSize, options: .storageModeShared)
@@ -189,32 +171,12 @@ final class Renderer: NSObject, MTKViewDelegate {
         
         var constants = FrameConstants(projectionMatrix: projectionMatrix,
                                        viewMatrix: viewMatrix,
-                                       inverseViewDirectionMatrix: viewDirectionMatrix.inverse.upperLeft3x3,
-                                       lightCount: UInt32(lights.count))
+                                       inverseViewDirectionMatrix: viewDirectionMatrix.inverse.upperLeft3x3)
         
         let layout = MemoryLayout<FrameConstants>.self
         frameConstantsOffset = allocateConstantStorage(size: layout.size, alignment: layout.stride)
         let constantsPointer = constantBuffer.contents().advanced(by: frameConstantsOffset)
         constantsPointer.copyMemory(from: &constants, byteCount: layout.size)
-    }
-    
-    func updateLightConstants() {
-        let layout = MemoryLayout<LightConstants>.self
-        lightConstantsOffset = allocateConstantStorage(size: layout.stride * lights.count, alignment: layout.stride)
-        let lightsBufferPointer = constantBuffer.contents()
-            .advanced(by: lightConstantsOffset)
-            .assumingMemoryBound(to: LightConstants.self)
-        
-        for (lightIndex, light) in lights.enumerated() {
-            let shadowViewMatrix = light.worldTransform.inverse
-            let shadowProjectionMatrix = light.projectionMatrix
-            let shadowViewProjectionMatrix = shadowProjectionMatrix * shadowViewMatrix
-            lightsBufferPointer[lightIndex] = LightConstants(viewProjectionMatrix: shadowViewProjectionMatrix,
-                                                             intensity: light.color * light.intensity,
-                                                             position: light.position,
-                                                             direction: light.direction,
-                                                             type: light.type.rawValue)
-        }
     }
     
     func updateNodeConstants(timestep: Float) {
@@ -268,7 +230,6 @@ final class Renderer: NSObject, MTKViewDelegate {
             time += timestep
             
             let t_constants = timeit {
-                updateLightConstants()
                 updateFrameConstants()
                 let t_nodeConstants = timeit {
                     updateNodeConstants(timestep: Float(timestep))
@@ -291,11 +252,8 @@ final class Renderer: NSObject, MTKViewDelegate {
                 renderCommandEncoder.setRenderPipelineState(renderPipelineState)
                 
                 // Bind constants:
-                renderCommandEncoder.setVertexBuffer(constantBuffer, offset: frameConstantsOffset, index: 3)
-                renderCommandEncoder.setFragmentBuffer(constantBuffer, offset: frameConstantsOffset, index: 3)
-                renderCommandEncoder.setFragmentBuffer(constantBuffer, offset: lightConstantsOffset, index: 4)
-                
                 renderCommandEncoder.setVertexBuffer(constantBuffer, offset: nodeConstantsOffsets[0], index: 2)
+                renderCommandEncoder.setVertexBuffer(constantBuffer, offset: frameConstantsOffset, index: 3)
                 
                 let t_main_loop = timeit {
                     let mesh = grid.cellMesh
@@ -305,12 +263,11 @@ final class Renderer: NSObject, MTKViewDelegate {
                     }
 
                     for submesh in mesh.submeshes {
-                        let indexBuffer = submesh.indexBuffer
                         renderCommandEncoder.drawIndexedPrimitives(type: submesh.primitiveType,
                                                                    indexCount: submesh.indexCount,
                                                                    indexType: submesh.indexType,
-                                                                   indexBuffer: indexBuffer.buffer,
-                                                                   indexBufferOffset: indexBuffer.offset,
+                                                                   indexBuffer: submesh.indexBuffer,
+                                                                   indexBufferOffset: submesh.indexBufferOffset,
                                                                    instanceCount: grid.cells.count)
                     }
                 }

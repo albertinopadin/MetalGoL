@@ -8,7 +8,6 @@
 import Foundation
 import simd
 
-
 class FlyCameraController {
     let pointOfView: Node
     

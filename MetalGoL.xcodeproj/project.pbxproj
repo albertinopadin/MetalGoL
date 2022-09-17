@@ -61,6 +61,12 @@
 		CE20468728A0845B0007BD14 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468528A0845B0007BD14 /* Colors.swift */; };
 		CE20468828A0845B0007BD14 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE20468528A0845B0007BD14 /* Colors.swift */; };
 		CE7F490028C1C51E0082B197 /* GameWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7F48FF28C1C51E0082B197 /* GameWindowController.swift */; };
+		CEB9303B28D5A2D800D42C39 /* CellMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB9303A28D5A2D800D42C39 /* CellMesh.swift */; };
+		CEB9303C28D5A2D800D42C39 /* CellMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB9303A28D5A2D800D42C39 /* CellMesh.swift */; };
+		CEB9303D28D5A2D800D42C39 /* CellMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB9303A28D5A2D800D42C39 /* CellMesh.swift */; };
+		CEB9303F28D5A7F000D42C39 /* MetalTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB9303E28D5A7F000D42C39 /* MetalTypes.swift */; };
+		CEB9304028D5A7F000D42C39 /* MetalTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB9303E28D5A7F000D42C39 /* MetalTypes.swift */; };
+		CEB9304128D5A7F000D42C39 /* MetalTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB9303E28D5A7F000D42C39 /* MetalTypes.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -94,6 +100,8 @@
 		CE20468128A081A80007BD14 /* Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
 		CE20468528A0845B0007BD14 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		CE7F48FF28C1C51E0082B197 /* GameWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWindowController.swift; sourceTree = "<group>"; };
+		CEB9303A28D5A2D800D42C39 /* CellMesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellMesh.swift; sourceTree = "<group>"; };
+		CEB9303E28D5A7F000D42C39 /* MetalTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalTypes.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +157,8 @@
 				CE20467D289FD03D0007BD14 /* Cell.swift */,
 				CE20468128A081A80007BD14 /* Grid.swift */,
 				CE20468528A0845B0007BD14 /* Colors.swift */,
+				CEB9303A28D5A2D800D42C39 /* CellMesh.swift */,
+				CEB9303E28D5A7F000D42C39 /* MetalTypes.swift */,
 			);
 			path = "MetalGoL Shared";
 			sourceTree = "<group>";
@@ -335,6 +345,8 @@
 				CE204672289F92B80007BD14 /* Light.swift in Sources */,
 				CE204666289F91710007BD14 /* Shaders.metal in Sources */,
 				CE204676289F92DF0007BD14 /* FlyCameraController.swift in Sources */,
+				CEB9303F28D5A7F000D42C39 /* MetalTypes.swift in Sources */,
+				CEB9303B28D5A2D800D42C39 /* CellMesh.swift in Sources */,
 				CE20468628A0845B0007BD14 /* Colors.swift in Sources */,
 				CE20464D289F47E30007BD14 /* Renderer_og.swift in Sources */,
 				CE20464A289F47E30007BD14 /* Shaders_og.metal in Sources */,
@@ -356,6 +368,8 @@
 				CE204673289F92B80007BD14 /* Light.swift in Sources */,
 				CE204667289F91710007BD14 /* Shaders.metal in Sources */,
 				CE204677289F92DF0007BD14 /* FlyCameraController.swift in Sources */,
+				CEB9304028D5A7F000D42C39 /* MetalTypes.swift in Sources */,
+				CEB9303C28D5A2D800D42C39 /* CellMesh.swift in Sources */,
 				CE20468728A0845B0007BD14 /* Colors.swift in Sources */,
 				CE20464E289F47E30007BD14 /* Renderer_og.swift in Sources */,
 				CE20464B289F47E30007BD14 /* Shaders_og.metal in Sources */,
@@ -376,10 +390,12 @@
 			files = (
 				CE204674289F92B80007BD14 /* Light.swift in Sources */,
 				CE204668289F91710007BD14 /* Shaders.metal in Sources */,
+				CEB9304128D5A7F000D42C39 /* MetalTypes.swift in Sources */,
 				CE204678289F92DF0007BD14 /* FlyCameraController.swift in Sources */,
 				CE20468828A0845B0007BD14 /* Colors.swift in Sources */,
 				CE20464F289F47E30007BD14 /* Renderer_og.swift in Sources */,
 				CE20464C289F47E30007BD14 /* Shaders_og.metal in Sources */,
+				CEB9303D28D5A2D800D42C39 /* CellMesh.swift in Sources */,
 				CE204680289FD03D0007BD14 /* Cell.swift in Sources */,
 				CE204670289F92910007BD14 /* TimeIt.swift in Sources */,
 				CE20468428A081A80007BD14 /* Grid.swift in Sources */,

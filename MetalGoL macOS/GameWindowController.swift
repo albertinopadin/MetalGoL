@@ -48,7 +48,9 @@ class GameWindowController: NSWindowController, GameWindowDelegate, NSColorChang
     }
     
     func setGeneration(_ generation: UInt64) {
-        generationLabel.integerValue = Int(generation)
+        DispatchQueue.main.async {
+            self.generationLabel.integerValue = Int(generation)
+        }
     }
     
     @IBAction func reset(_ sender: NSButton) {

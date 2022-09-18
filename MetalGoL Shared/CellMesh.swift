@@ -39,19 +39,15 @@ class CellMesh {
             case .Quad:
                 let vertices = CellMesh.makeQuadVertices(size: size)
                 let mtlVertexBuffer = device.makeBuffer(bytes: vertices, length: Vertex.stride(vertices.count), options: [])!
+                mtlVertexBuffer.label = "Vertex Buffer"
                 vertexBuffers = [CellVertexBuffer(buffer: mtlVertexBuffer, offset: 0)]
                 // Counterclockwise:
                 let indices: [UInt32] = [
                     0, 1, 2,
                     0, 2, 3
                 ]
-            
-                // Clockwise:
-//                let indices: [UInt32] = [
-//                    0, 2, 1,
-//                    0, 3, 2
-//                ]
                 let mtlIndexBuffer = device.makeBuffer(bytes: indices, length: UInt32.stride(indices.count), options: [])!
+                mtlIndexBuffer.label = "Index Buffer"
                 submeshes = [CellSubmesh(indexCount: indices.count, indexBuffer: mtlIndexBuffer, indexBufferOffset: 0)]
             case .Box:
                 let mesh = CellMesh.makeBoxMtkMesh(device: device,
@@ -71,16 +67,11 @@ class CellMesh {
     }
     
     static func makeQuadVertices(size: Float) -> [Vertex] {
-//        let halfSize = size / 2
-//        let topRight = Vertex(position: float3(halfSize, halfSize, 0))
-//        let topLeft = Vertex(position: float3(-halfSize, halfSize, 0))
-//        let bottomLeft = Vertex(position: float3(-halfSize, -halfSize, 0))
-//        let bottomRight = Vertex(position: float3(halfSize, -halfSize, 0))
-        
-        let topRight = Vertex(position: float3(1, 1, 0))
-        let topLeft = Vertex(position: float3(-1, 1, 0))
-        let bottomLeft = Vertex(position: float3(-1, -1, 0))
-        let bottomRight = Vertex(position: float3(1, -1, 0))
+        let halfSize    = size / 2
+        let topRight    = Vertex(position: float3(halfSize, halfSize, 0))
+        let topLeft     = Vertex(position: float3(-halfSize, halfSize, 0))
+        let bottomLeft  = Vertex(position: float3(-halfSize, -halfSize, 0))
+        let bottomRight = Vertex(position: float3(halfSize, -halfSize, 0))
         return [topRight, topLeft, bottomLeft, bottomRight]
     }
     

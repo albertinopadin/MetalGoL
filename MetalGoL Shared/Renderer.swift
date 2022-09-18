@@ -46,7 +46,6 @@ final class Renderer: NSObject, MTKViewDelegate {
     private var constantBuffer: MTLBuffer!
     private var currentConstantBufferOffset = 0
     private var frameConstantsOffset: Int = 0
-    private var lightConstantsOffset: Int = 0
     private var nodeConstantsOffsets = [Int]()
     
     private var frameSemaphore = DispatchSemaphore(value: MaxOutstandingFrameCount)
@@ -112,9 +111,9 @@ final class Renderer: NSObject, MTKViewDelegate {
                                                  bufferIndex: 0)
         mdlVD.attributes[1] = MDLVertexAttribute(name: MDLVertexAttributeNormal,
                                                  format: .float3,
-                                                 offset: 12,
+                                                 offset: float3.stride,
                                                  bufferIndex: 0)
-        mdlVD.layouts[0] = MDLVertexBufferLayout(stride: 24)
+        mdlVD.layouts[0] = MDLVertexBufferLayout(stride: float3.stride(2))
         return mdlVD
     }
     
